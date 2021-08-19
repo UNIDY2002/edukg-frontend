@@ -2,4 +2,8 @@
     <string name="app_name">EDUKG</string>
     <string name="home">主页</string>
     <string name="history">历史记录</string>
+    <string name="qa">问答</string>
+    <string name="detail">详情</string>
+    <string name="search">检索</string>
+    <string name="linking">实体链接</string>
 </resources>
