@@ -7,17 +7,42 @@
         android:layout_height="match_parent"
         tools:context=".ui.home.HomeFragment">
 
-    <TextView
-            android:id="@+id/text_home"
+    <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+                android:id="@+id/home_menu_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:icon="@drawable/ic_menu"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                />
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/home_search_input"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toRightOf="@id/home_menu_icon"
+                app:layout_constraintRight_toLeftOf="@id/home_history_icon"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <Button
+                android:id="@+id/home_history_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:icon="@android:drawable/ic_menu_recent_history"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
