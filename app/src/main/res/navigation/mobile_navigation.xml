@@ -7,37 +7,37 @@
 
     <fragment
             android:id="@+id/nav_home"
-            android:name="com.java.sunxun.HomeFragment"
+            android:name="com.java.sunxun.ui.HomeFragment"
             android:label="@string/home"
             tools:layout="@layout/fragment_home"/>
 
     <fragment
             android:id="@+id/nav_history"
-            android:name="com.java.sunxun.HistoryFragment"
+            android:name="com.java.sunxun.ui.HistoryFragment"
             android:label="@string/history"
             tools:layout="@layout/fragment_history"/>
 
     <fragment
             android:id="@+id/nav_qa"
-            android:name="com.java.sunxun.QaFragment"
+            android:name="com.java.sunxun.ui.QaFragment"
             android:label="@string/qa"
             tools:layout="@layout/fragment_qa"/>
 
     <fragment
             android:id="@+id/nav_detail"
-            android:name="com.java.sunxun.DetailFragment"
+            android:name="com.java.sunxun.ui.DetailFragment"
             android:label="@string/detail"
             tools:layout="@layout/fragment_detail"/>
 
     <fragment
             android:id="@+id/nav_search"
-            android:name="com.java.sunxun.SearchFragment"
+            android:name="com.java.sunxun.ui.SearchFragment"
             android:label="@string/search"
             tools:layout="@layout/fragment_search"/>
 
     <fragment
             android:id="@+id/nav_linking"
-            android:name="com.java.sunxun.LinkingFragment"
+            android:name="com.java.sunxun.ui.LinkingFragment"
             android:label="@string/linking"
             tools:layout="@layout/fragment_linking"/>
 </navigation>

@@ -1,4 +1,4 @@
-package com.java.sunxun;
+package com.java.sunxun.ui;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,17 +8,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-import com.java.sunxun.databinding.FragmentLinkingBinding;
+import com.java.sunxun.databinding.FragmentHistoryBinding;
 
-public class LinkingFragment extends Fragment {
+public class HistoryFragment extends Fragment {
 
     @Nullable
-    FragmentLinkingBinding binding;
+    FragmentHistoryBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentLinkingBinding.inflate(inflater, container, false);
-        binding.linkingReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        binding = FragmentHistoryBinding.inflate(inflater, container, false);
+        binding.historyReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
         return binding.getRoot();
     }
 

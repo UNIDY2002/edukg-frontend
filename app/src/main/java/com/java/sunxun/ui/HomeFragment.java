@@ -1,4 +1,4 @@
-package com.java.sunxun;
+package com.java.sunxun.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentHomeBinding;
 
 public class HomeFragment extends Fragment {

@@ -1,24 +1,24 @@
-package com.java.sunxun;
+package com.java.sunxun.ui;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import androidx.navigation.fragment.NavHostFragment;
-import com.java.sunxun.databinding.FragmentSearchBinding;
+import com.java.sunxun.databinding.FragmentQaBinding;
 
-public class SearchFragment extends Fragment {
+public class QaFragment extends Fragment {
 
     @Nullable
-    FragmentSearchBinding binding;
+    FragmentQaBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentSearchBinding.inflate(inflater, container, false);
-        binding.searchReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        binding = FragmentQaBinding.inflate(inflater, container, false);
+        binding.qaReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
         return binding.getRoot();
     }
 

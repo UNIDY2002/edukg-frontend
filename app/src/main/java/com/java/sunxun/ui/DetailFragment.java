@@ -1,4 +1,4 @@
-package com.java.sunxun;
+package com.java.sunxun.ui;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
