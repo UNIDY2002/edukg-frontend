@@ -24,8 +24,7 @@ class BaseNetwork {
                     try {
                         return URLEncoder.encode(e.getKey(), "UTF-8") + "=" + URLEncoder.encode(e.getValue(), "UTF-8");
                     } catch (UnsupportedEncodingException ex) {
-                        ex.printStackTrace();
-                        return "";
+                        throw new RuntimeException();
                     }
                 })
                 .collect(Collectors.joining("&"));
