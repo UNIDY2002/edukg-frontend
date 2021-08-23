@@ -1,6 +1,7 @@
 package com.java.sunxun;
 
 import android.os.Bundle;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -9,6 +10,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.databinding.ActivityMainBinding;
+import com.java.sunxun.models.User;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
@@ -29,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             NavigationUI.setupWithNavController(binding.navView, navHostFragment.getNavController());
         }
+
+        TextView drawerUsernameText = binding.navView.getHeaderView(0).findViewById(R.id.drawer_username_text);
+        drawerUsernameText.setText(User.currentUser.getUsername());
+        User.addOnUsernameChangedListener(drawerUsernameText::setText);
 
         PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(this) {
             @Override
