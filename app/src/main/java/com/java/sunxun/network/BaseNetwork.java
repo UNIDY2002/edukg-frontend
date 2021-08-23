@@ -44,13 +44,25 @@ class BaseNetwork {
                     if (lines == null) {
                         throw new NetworkFailureException();
                     }
-                    handler.activity.runOnUiThread(() -> handler.onSuccess(lines.collect(Collectors.joining("\n"))));
+                    handler.activity.runOnUiThread(() -> {
+                        try {
+                            handler.onSuccess(lines.collect(Collectors.joining("\n")));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
 
                 } else {
                     throw new NetworkFailureException();
                 }
             } catch (Exception e) {
-                handler.activity.runOnUiThread(() -> handler.onError(e));
+                handler.activity.runOnUiThread(() -> {
+                    try {
+                        handler.onError(e);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                });
             }
         }).start();
     }
