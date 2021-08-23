@@ -4,7 +4,7 @@ import android.app.Activity;
 import androidx.fragment.app.Fragment;
 
 public abstract class NetworkHandler<T> {
-    Activity activity;
+    public Activity activity;
 
     public NetworkHandler(Activity activity) {
         this.activity = activity;
