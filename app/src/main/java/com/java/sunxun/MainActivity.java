@@ -27,14 +27,18 @@ public class MainActivity extends AppCompatActivity {
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home).build();
 
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        if (navHostFragment != null) {
-            NavigationUI.setupWithNavController(binding.navView, navHostFragment.getNavController());
-        }
-
         TextView drawerUsernameText = binding.navView.getHeaderView(0).findViewById(R.id.drawer_username_text);
         drawerUsernameText.setText(User.currentUser.getUsername());
         User.addOnUsernameChangedListener(drawerUsernameText::setText);
+
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        if (navHostFragment != null) {
+            NavigationUI.setupWithNavController(binding.navView, navHostFragment.getNavController());
+            drawerUsernameText.setOnClickListener(view -> {
+                binding.mainDrawer.close();
+                navHostFragment.getNavController().navigate(R.id.nav_login);
+            });
+        }
 
         PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(this) {
             @Override

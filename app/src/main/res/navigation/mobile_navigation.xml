@@ -40,4 +40,10 @@
             android:name="com.java.sunxun.ui.LinkingFragment"
             android:label="@string/linking"
             tools:layout="@layout/fragment_linking"/>
+
+    <fragment
+            android:id="@+id/nav_login"
+            android:name="com.java.sunxun.ui.LoginFragment"
+            android:label="@string/login"
+            tools:layout="@layout/fragment_login"/>
 </navigation>
