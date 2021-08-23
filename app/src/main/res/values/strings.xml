@@ -6,4 +6,7 @@
     <string name="detail">详情</string>
     <string name="search">检索</string>
     <string name="linking">实体链接</string>
+    <string name="qa_hint">请输入您的问题，目前只支持语文学科哦～</string>
+    <string name="qa_submit">提问</string>
+    <string name="qa_empty">此问题没有找到答案！</string>
 </resources>

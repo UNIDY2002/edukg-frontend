@@ -9,8 +9,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.databinding.ActivityMainBinding;
-import com.java.sunxun.models.Answer;
-import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
@@ -35,17 +33,7 @@ public class MainActivity extends AppCompatActivity {
         PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(this) {
             @Override
             public void onSuccess(String result) {
-                PlatformNetwork.qa(Subject.chinese, "李白的字是什么", new NetworkHandler<Answer>(this.activity) {
-                    @Override
-                    public void onSuccess(Answer result) {
-                        Snackbar.make(binding.navHostFragment, "李白的字是" + result.getValue(), Snackbar.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+                Snackbar.make(binding.navHostFragment, "Login successful, ID = " + result, Snackbar.LENGTH_LONG).show();
             }
 
             @Override
