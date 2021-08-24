@@ -12,4 +12,8 @@
     <string name="qa_empty">此问题没有找到答案！</string>
     <string name="linking_hint">请输入您要链接的文本，目前只支持语文学科哦～</string>
     <string name="linking_submit">链接</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <string name="sign_in">登录</string>
+    <string name="cancel">取消</string>
 </resources>

@@ -3,6 +3,7 @@ package com.java.sunxun.models;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class User {
@@ -32,7 +33,7 @@ public class User {
     public static User login(String username, String password) {
         performLogin(username, password);
         onUsernameChangedListeners.forEach(listener -> listener.accept(username));
-        return new User(username, password);
+        return currentUser = new User(username, password);
     }
 
     public void refreshCredentials() {
@@ -41,6 +42,10 @@ public class User {
 
     public void logout() {
         currentUser = VISITOR;
+    }
+
+    public static boolean isVisitor() {
+        return Objects.equals(currentUser.username, VISITOR.username);
     }
 
     public static void addOnUsernameChangedListener(Consumer<String> listener) {

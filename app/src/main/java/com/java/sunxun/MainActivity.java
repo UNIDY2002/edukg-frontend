@@ -35,8 +35,10 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             NavigationUI.setupWithNavController(binding.navView, navHostFragment.getNavController());
             drawerUsernameText.setOnClickListener(view -> {
-                binding.mainDrawer.close();
-                navHostFragment.getNavController().navigate(R.id.nav_login);
+                if(User.isVisitor()) {
+                    binding.mainDrawer.close();
+                    navHostFragment.getNavController().navigate(R.id.nav_login);
+                }
             });
         }
 
