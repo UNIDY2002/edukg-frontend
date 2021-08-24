@@ -21,9 +21,9 @@ import com.java.sunxun.network.NetworkHandler;
 public class LoginFragment extends Fragment {
 
     @Nullable
-    FragmentLoginBinding binding;
+    private FragmentLoginBinding binding;
 
-    Fragment getThis() {
+    private Fragment getThis() {
         return this;
     }
 
