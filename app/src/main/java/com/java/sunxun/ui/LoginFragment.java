@@ -1,6 +1,7 @@
 package com.java.sunxun.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,13 +12,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import com.google.android.material.snackbar.Snackbar;
+import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentLoginBinding;
 import com.java.sunxun.models.User;
+import com.java.sunxun.network.NetworkHandler;
 
 public class LoginFragment extends Fragment {
 
     @Nullable
     FragmentLoginBinding binding;
+
+    Fragment getThis() {
+        return this;
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -53,18 +61,35 @@ public class LoginFragment extends Fragment {
             Editable password = binding.loginPasswordInput.getText();
             if (username != null && password != null) {
                 binding.loginLoading.setVisibility(View.VISIBLE);
-                User user = User.login(username.toString(), password.toString());
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1000);
-                        ((Activity) view.getContext()).runOnUiThread(() -> {
-                            binding.loginLoading.setVisibility(View.GONE);
-                            NavHostFragment.findNavController(this).navigateUp();
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                User.login(username.toString(), password.toString(), new NetworkHandler<User>(this) {
+                    @Override
+                    public void onSuccess(User user) {
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(1000);
+                                Activity activity = (Activity) view.getContext();
+                                activity.runOnUiThread(() -> {
+                                    activity.getSharedPreferences("credentials", Context.MODE_PRIVATE)
+                                            .edit()
+                                            .putString("username", user.getUsername())
+                                            .putString("password", user.getPassword())
+                                            .apply();
+                                    binding.loginLoading.setVisibility(View.GONE);
+                                    NavHostFragment.findNavController(getThis()).navigateUp();
+                                });
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
                     }
-                }).start();
+
+                    @Override
+                    public void onError(Exception e) {
+                        Snackbar.make(view, R.string.login_failure, Snackbar.LENGTH_LONG).show();
+                        binding.loginLoading.setVisibility(View.GONE);
+                    }
+                });
+
             }
         });
 

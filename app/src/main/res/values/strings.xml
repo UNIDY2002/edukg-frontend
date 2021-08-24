@@ -16,4 +16,5 @@
     <string name="password">密码</string>
     <string name="sign_in">登录</string>
     <string name="cancel">取消</string>
+    <string name="login_failure">用户名或密码错误，请重试。</string>
 </resources>

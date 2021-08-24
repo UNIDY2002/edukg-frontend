@@ -1,5 +1,7 @@
 package com.java.sunxun;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,22 +37,36 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             NavigationUI.setupWithNavController(binding.navView, navHostFragment.getNavController());
             drawerUsernameText.setOnClickListener(view -> {
-                if(User.isVisitor()) {
+                if (User.isVisitor()) {
                     binding.mainDrawer.close();
                     navHostFragment.getNavController().navigate(R.id.nav_login);
                 }
             });
         }
 
-        PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(this) {
+        SharedPreferences sharedPreferences = getSharedPreferences("credentials", Context.MODE_PRIVATE);
+        String username = sharedPreferences.getString("username", User.VISITOR.getUsername());
+        String password = sharedPreferences.getString("password", User.VISITOR.getPassword());
+
+        User.login(username, password, new NetworkHandler<User>(this) {
             @Override
-            public void onSuccess(String result) {
-                Snackbar.make(binding.navHostFragment, "Login successful, ID = " + result, Snackbar.LENGTH_LONG).show();
+            public void onSuccess(User result) {
+                PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(activity) {
+                    @Override
+                    public void onSuccess(String result) {
+                        Snackbar.make(binding.navHostFragment, "Login successful, ID = " + result, Snackbar.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             }
 
             @Override
             public void onError(Exception e) {
-                e.printStackTrace();
+
             }
         });
     }
