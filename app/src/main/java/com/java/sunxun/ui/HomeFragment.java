@@ -3,6 +3,7 @@ package com.java.sunxun.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,50 +14,55 @@ import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentHomeBinding;
+import com.java.sunxun.models.Entity;
+import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-public class HomeFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
+
+public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @Nullable
     FragmentHomeBinding binding;
 
-    static class EntityListRecyclerViewAdapter extends RecyclerView.Adapter<EntityListRecyclerViewAdapter.ViewHolder> {
+    private Subject selectedSubject;
+    final private List<Entity> baseEntities = new ArrayList<>();
+    private int requestCnt = 0;
+    private int entityNumEveryRequest = 10; // TODO: Make it editable later
 
-        final private LayoutInflater mInflater;
-        final private String[] data;
-
-        public EntityListRecyclerViewAdapter(Context context) {
-            this.mInflater = LayoutInflater.from(context);
-            this.data = new String[20];
-            for (int i = 0; i < 20; ++i) {
-                this.data[i] = "item" + (i + 1);
-            }
-        }
+    class EntityListRecyclerViewAdapter extends RecyclerView.Adapter<EntityListRecyclerViewAdapter.ViewHolder> {
 
         @Override
         public @NotNull ViewHolder onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
-            return new ViewHolder(mInflater.inflate(R.layout.fragment_home, parent, false));
+            return new ViewHolder(
+                    LayoutInflater.from(parent.getContext()).inflate(R.layout.home_entity_item, parent, false));
         }
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.itemNameView.setText(data[position]);
-            holder.itemCategoryView.setText(data[position]);
+            holder.itemNameView.setText(baseEntities.get(position).getLabel());
+            holder.itemCategoryView.setText(baseEntities.get(position).getCategory());
         }
 
         @Override
         public int getItemCount() {
-            return data.length;
+            return baseEntities.size();
         }
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder {
 
             public TextView itemNameView;
             public TextView itemCategoryView;
@@ -69,6 +75,28 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    /**
+     * This function will refresh entity list & update UI according to data from net.
+     */
+    private void refreshEntityList() {
+        ApplicationNetwork.getEntityList(selectedSubject, requestCnt, entityNumEveryRequest, new NetworkHandler<String>(this) {
+            @Override
+            public void onSuccess(String result) {
+                JSONArray arr = JSON.parseArray(result);
+                for (int i = 0; i < arr.size(); ++i) {
+                    JSONObject o = arr.getJSONObject(i);
+                    Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("id"));
+                    baseEntities.add(newEntity);
+                }
+                binding.entityList.setLayoutManager(new LinearLayoutManager(HomeFragment.this.getActivity()));
+                binding.entityList.setAdapter(new EntityListRecyclerViewAdapter());
+            }
+
+            @Override
+            public void onError(Exception e) { e.printStackTrace(); }
+        });
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -76,15 +104,7 @@ public class HomeFragment extends Fragment {
         binding.homeSearchInput.setOnFocusChangeListener((view, b) -> NavHostFragment.findNavController(this).navigate(R.id.nav_search));
         binding.homeHistoryIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_history));
 
-        ApplicationNetwork.getEntityList(new NetworkHandler<String>(this) {
-            @Override
-            public void onSuccess(String result) {
-                binding.entityList.setAdapter(new EntityListRecyclerViewAdapter(HomeFragment.this.getActivity()));
-            }
-
-            @Override
-            public void onError(Exception e) { e.printStackTrace(); }
-        });
+        refreshEntityList();
 
         return binding.getRoot();
     }
@@ -93,5 +113,11 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onRefresh() {
+        ++requestCnt;
+        refreshEntityList();
     }
 }

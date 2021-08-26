@@ -3,8 +3,10 @@ package com.java.sunxun.network;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.exceptions.PlatformLoginFailureException;
+import com.java.sunxun.models.Subject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ApplicationNetwork {
     static String id;
@@ -15,8 +17,13 @@ public class ApplicationNetwork {
         BaseNetwork.fetch("https://www.baidu.com", new HashMap<String, String>(), BaseNetwork.Method.GET, new NetworkHandler<String>(handler.activity) {
             @Override
             public void onSuccess(String result) {
-                System.out.println(result);
-                handler.onSuccess("Hello, baidu!");
+                JSONObject o = JSON.parseObject(result);
+                if ("0".equals(o.getString("code"))) {
+                    handler.onSuccess(o.getString("data"));
+                } else {
+                    // TODO: Write a better exception!
+                    handler.onError(new Exception());
+                }
             }
 
             @Override

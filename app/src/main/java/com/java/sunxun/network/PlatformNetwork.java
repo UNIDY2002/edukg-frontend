@@ -7,6 +7,7 @@ import com.java.sunxun.exceptions.PlatformApiException;
 import com.java.sunxun.models.Answer;
 import com.java.sunxun.models.Linking;
 import com.java.sunxun.models.Problem;
+import com.java.sunxun.models.Entity;
 import com.java.sunxun.models.Subject;
 
 import java.util.ArrayList;
