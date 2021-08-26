@@ -60,7 +60,7 @@ public class LoginFragment extends Fragment {
             Editable username = binding.loginUsernameInput.getText();
             Editable password = binding.loginPasswordInput.getText();
             if (username != null && password != null) {
-                binding.loginLoading.setVisibility(View.VISIBLE);
+                Snackbar.make(view, R.string.logging_in, Snackbar.LENGTH_SHORT).show();
                 User.login(username.toString(), password.toString(), new NetworkHandler<User>(this) {
                     @Override
                     public void onSuccess(User user) {
@@ -74,7 +74,6 @@ public class LoginFragment extends Fragment {
                                             .putString("username", user.getUsername())
                                             .putString("password", user.getPassword())
                                             .apply();
-                                    binding.loginLoading.setVisibility(View.GONE);
                                     NavHostFragment.findNavController(getThis()).navigateUp();
                                 });
                             } catch (Exception e) {
@@ -86,14 +85,13 @@ public class LoginFragment extends Fragment {
                     @Override
                     public void onError(Exception e) {
                         Snackbar.make(view, R.string.login_failure, Snackbar.LENGTH_LONG).show();
-                        binding.loginLoading.setVisibility(View.GONE);
                     }
                 });
 
             }
         });
 
-        binding.loginCancelButton.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        binding.loginAsVisitorText.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
 
         return binding.getRoot();
     }
