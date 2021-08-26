@@ -1,14 +1,14 @@
 package com.java.sunxun.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
+import android.widget.PopupMenu;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -42,12 +42,17 @@ public class LinkingFragment extends Fragment {
             } else {
                 Editable editable = binding.linkingQuestionInput.getText();
                 if (editable == null) return;
+                Context context = getContext();
+                if (context == null) return;
+                Subject subject = Subject.fromName(context, binding.linkingSubjectText.getText().toString());
+                if (subject == null) return;
                 binding.linkingQuestionInput.setEnabled(false);
                 Snackbar.make(binding.linkingQuestionField, R.string.querying, Snackbar.LENGTH_SHORT).show();
-                PlatformNetwork.linking(Subject.chinese, editable.toString(), new NetworkHandler<Linking>(this) {
+                PlatformNetwork.linking(subject, editable.toString(), new NetworkHandler<Linking>(this) {
                     @Override
                     public void onSuccess(Linking result) {
                         if (binding.linkingStateToggleGroup.getCheckedButtonId() != R.id.linking_start_icon) return;
+                        Snackbar.make(binding.linkingQuestionField, R.string.query_done, Snackbar.LENGTH_SHORT).show();
                         SpannableString spannableString = new SpannableString(result.getContext());
                         result.getLinkingResults().forEach(linkingResult -> spannableString.setSpan(
                                 new ClickableSpan() {
@@ -67,11 +72,22 @@ public class LinkingFragment extends Fragment {
 
                     @Override
                     public void onError(Exception e) {
-
+                        Snackbar.make(binding.linkingQuestionField, R.string.query_error, Snackbar.LENGTH_SHORT).show();
                     }
                 });
             }
         });
+
+        binding.linkingSubjectText.setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(getContext(), view);
+            popupMenu.getMenuInflater().inflate(R.menu.subject_menu, popupMenu.getMenu());
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                binding.linkingSubjectText.setText(menuItem.getTitle());
+                return true;
+            });
+            popupMenu.show();
+        });
+
         return binding.getRoot();
     }
 

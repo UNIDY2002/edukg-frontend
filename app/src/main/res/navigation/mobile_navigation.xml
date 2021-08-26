@@ -14,7 +14,7 @@
     <fragment
             android:id="@+id/nav_history"
             android:name="com.java.sunxun.ui.HistoryFragment"
-            android:label="@string/history"
+            android:label="@string/history_record"
             tools:layout="@layout/fragment_history"/>
 
     <fragment
