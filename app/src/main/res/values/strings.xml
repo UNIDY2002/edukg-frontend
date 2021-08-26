@@ -20,4 +20,5 @@
     <string name="logout">登出</string>
     <string name="logging_in">登录中，请稍候……</string>
     <string name="login_as_visitor">游客登录</string>
+    <string name="querying">查询中，请稍候……</string>
 </resources>

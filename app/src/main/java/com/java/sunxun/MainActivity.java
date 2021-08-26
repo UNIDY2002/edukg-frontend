@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         User.login(username, password, new NetworkHandler<User>(this) {
             @Override
             public void onSuccess(User result) {
-                PlatformNetwork.login("15800148446", "nmsl5201314", new NetworkHandler<String>(activity) {
+                PlatformNetwork.login("13120196066", "ekmP2bjhQLaYU64", new NetworkHandler<String>(activity) {
                     @Override
                     public void onSuccess(String result) {
                         Snackbar.make(binding.navHostFragment, "Login successful, ID = " + result, Snackbar.LENGTH_LONG).show();

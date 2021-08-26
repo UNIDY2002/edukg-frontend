@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import com.google.android.material.snackbar.Snackbar;
+import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentLinkingBinding;
 import com.java.sunxun.models.Linking;
 import com.java.sunxun.models.Subject;
@@ -30,12 +31,23 @@ public class LinkingFragment extends Fragment {
         binding = FragmentLinkingBinding.inflate(inflater, container, false);
         binding.linkingAnswerField.setMovementMethod(LinkMovementMethod.getInstance());
         binding.linkingReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
-        binding.linkingSubmitButton.setOnClickListener(view -> {
-            Editable editable = binding.linkingQuestionInput.getText();
-            if (editable != null) {
-                PlatformNetwork.linking(Subject.chinese, editable.toString(), new NetworkHandler<Linking>(view) {
+
+        binding.linkingStateToggleGroup.check(R.id.linking_edit_icon);
+        binding.linkingStateToggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            if (checkedId == R.id.linking_edit_icon) {
+                binding.linkingAnswerField.setVisibility(View.GONE);
+                binding.linkingQuestionField.setVisibility(View.VISIBLE);
+                binding.linkingQuestionInput.setEnabled(true);
+            } else {
+                Editable editable = binding.linkingQuestionInput.getText();
+                if (editable == null) return;
+                binding.linkingQuestionInput.setEnabled(false);
+                Snackbar.make(binding.linkingQuestionField, R.string.querying, Snackbar.LENGTH_SHORT).show();
+                PlatformNetwork.linking(Subject.chinese, editable.toString(), new NetworkHandler<Linking>(this) {
                     @Override
                     public void onSuccess(Linking result) {
+                        if (binding.linkingStateToggleGroup.getCheckedButtonId() != R.id.linking_start_icon) return;
                         SpannableString spannableString = new SpannableString(result.getContext());
                         result.getLinkingResults().forEach(linkingResult -> spannableString.setSpan(
                                 new ClickableSpan() {
@@ -48,6 +60,8 @@ public class LinkingFragment extends Fragment {
                                 linkingResult.getEndIndex() + 1,
                                 Spanned.SPAN_INCLUSIVE_INCLUSIVE
                         ));
+                        binding.linkingQuestionField.setVisibility(View.GONE);
+                        binding.linkingAnswerField.setVisibility(View.VISIBLE);
                         binding.linkingAnswerField.setText(spannableString);
                     }
 
