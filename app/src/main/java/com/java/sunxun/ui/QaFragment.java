@@ -12,10 +12,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.java.sunxun.R;
+import com.java.sunxun.data.QaViewModel;
 import com.java.sunxun.databinding.FragmentQaBinding;
 import com.java.sunxun.models.Answer;
 import com.java.sunxun.models.Subject;
@@ -29,22 +31,13 @@ public class QaFragment extends Fragment {
     @Nullable
     FragmentQaBinding binding;
 
-    ArrayList<Pair<Subject, String>> qaList = new ArrayList<>();
-
-    // if subject is null, then the data is an answer
-    private void pushToQaList(@Nullable Subject subject, String data) {
-        if (binding != null) {
-            qaList.add(new Pair<>(subject, data));
-            QaRvAdapter adapter = (QaRvAdapter) binding.qaRecyclerView.getAdapter();
-            if (adapter != null) {
-                adapter.notifyItemInserted(qaList.size() - 1);
-            }
-            binding.qaRecyclerView.scrollToPosition(qaList.size() - 1);
-        }
-    }
+    private QaViewModel viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(this).get(QaViewModel.class);
+        QaRvAdapter adapter = new QaRvAdapter();
+
         binding = FragmentQaBinding.inflate(inflater, container, false);
         binding.qaReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
         binding.qaSubjectText.setOnClickListener(view -> {
@@ -58,7 +51,7 @@ public class QaFragment extends Fragment {
         });
 
         binding.qaRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.qaRecyclerView.setAdapter(new QaRvAdapter());
+        binding.qaRecyclerView.setAdapter(adapter);
 
         binding.qaSubmitButton.setOnClickListener(view -> {
             Editable editable = binding.qaQuestionInput.getText();
@@ -68,19 +61,28 @@ public class QaFragment extends Fragment {
             Subject subject = Subject.fromName(context, binding.qaSubjectText.getText().toString());
             if (subject == null) return;
             String question = editable.toString();
-            pushToQaList(subject, question);
+            viewModel.pushToQaList(subject, question);
             binding.qaQuestionInput.setText("");
             PlatformNetwork.qa(subject, question, new NetworkHandler<Answer>(view) {
                 @Override
                 public void onSuccess(Answer result) {
-                    pushToQaList(null, result.getValue());
+                    viewModel.pushToQaList(null, result.getValue());
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    pushToQaList(null, e.toString());
+                    viewModel.pushToQaList(null, e.toString());
                 }
             });
+        });
+
+        viewModel.getQaList().observe(getViewLifecycleOwner(), data -> {
+            // Assume that old data is never modified.
+            int prevSize = adapter.data.size();
+            int currSize = data.size();
+            adapter.data = data;
+            adapter.notifyItemRangeInserted(prevSize, currSize - prevSize);
+            binding.qaRecyclerView.scrollToPosition(data.size() - 1);
         });
 
         return binding.getRoot();
@@ -93,6 +95,8 @@ public class QaFragment extends Fragment {
     }
 
     class QaRvAdapter extends RecyclerView.Adapter<QaRvAdapter.ViewHolder> {
+
+        ArrayList<Pair<Subject, String>> data = new ArrayList<>();
 
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView text;
@@ -117,18 +121,18 @@ public class QaFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull QaRvAdapter.ViewHolder holder, int position) {
-            holder.text.setText(qaList.get(position).second);
-            if (holder.subject != null) holder.subject.setText(qaList.get(position).first.toName(getContext()));
+            holder.text.setText(data.get(position).second);
+            if (holder.subject != null) holder.subject.setText(data.get(position).first.toName(getContext()));
         }
 
         @Override
         public int getItemCount() {
-            return qaList.size();
+            return data.size();
         }
 
         @Override
         public int getItemViewType(int position) {
-            return qaList.get(position).first == null ? 1 : 0;
+            return data.get(position).first == null ? 1 : 0;
         }
     }
 }
