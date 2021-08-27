@@ -31,4 +31,29 @@ public enum Subject {
             return null;
         }
     }
+
+    public String toName(Context context) {
+        switch (this) {
+            case chinese:
+                return context.getString(R.string.chinese);
+            case english:
+                return context.getString(R.string.english);
+            case math:
+                return context.getString(R.string.math);
+            case physics:
+                return context.getString(R.string.physics);
+            case chemistry:
+                return context.getString(R.string.chemistry);
+            case biology:
+                return context.getString(R.string.biology);
+            case history:
+                return context.getString(R.string.history);
+            case geo:
+                return context.getString(R.string.geo);
+            case politics:
+                return context.getString(R.string.politics);
+            default:
+                return "";
+        }
+    }
 }

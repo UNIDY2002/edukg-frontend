@@ -29,12 +29,12 @@ public class QaFragment extends Fragment {
     @Nullable
     FragmentQaBinding binding;
 
-    ArrayList<Pair<Integer, String>> qaList = new ArrayList<>();
+    ArrayList<Pair<Subject, String>> qaList = new ArrayList<>();
 
-    // type = 0: question; type = 1: answer
-    private void pushToQaList(int type, String data) {
+    // if subject is null, then the data is an answer
+    private void pushToQaList(@Nullable Subject subject, String data) {
         if (binding != null) {
-            qaList.add(new Pair<>(type, data));
+            qaList.add(new Pair<>(subject, data));
             QaRvAdapter adapter = (QaRvAdapter) binding.qaRecyclerView.getAdapter();
             if (adapter != null) {
                 adapter.notifyItemInserted(qaList.size() - 1);
@@ -68,17 +68,17 @@ public class QaFragment extends Fragment {
             Subject subject = Subject.fromName(context, binding.qaSubjectText.getText().toString());
             if (subject == null) return;
             String question = editable.toString();
-            pushToQaList(1, question);
+            pushToQaList(subject, question);
             binding.qaQuestionInput.setText("");
             PlatformNetwork.qa(subject, question, new NetworkHandler<Answer>(view) {
                 @Override
                 public void onSuccess(Answer result) {
-                    pushToQaList(0, result.getValue());
+                    pushToQaList(null, result.getValue());
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    pushToQaList(0, e.toString());
+                    pushToQaList(null, e.toString());
                 }
             });
         });
@@ -97,9 +97,13 @@ public class QaFragment extends Fragment {
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView text;
 
+            @Nullable
+            TextView subject;
+
             public ViewHolder(@NonNull View view) {
                 super(view);
                 text = view.findViewById(R.id.qa_item_text);
+                subject = view.findViewById(R.id.qa_item_subject);
             }
         }
 
@@ -114,6 +118,7 @@ public class QaFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull QaRvAdapter.ViewHolder holder, int position) {
             holder.text.setText(qaList.get(position).second);
+            if (holder.subject != null) holder.subject.setText(qaList.get(position).first.toName(getContext()));
         }
 
         @Override
@@ -123,7 +128,7 @@ public class QaFragment extends Fragment {
 
         @Override
         public int getItemViewType(int position) {
-            return qaList.get(position).first;
+            return qaList.get(position).first == null ? 1 : 0;
         }
     }
 }
