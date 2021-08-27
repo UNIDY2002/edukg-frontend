@@ -1,5 +1,7 @@
 package com.java.sunxun.network;
 
+import com.alibaba.fastjson.JSONAware;
+import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.exceptions.NetworkFailureException;
 
 import java.io.BufferedReader;
@@ -10,6 +12,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,28 +33,30 @@ class BaseNetwork {
                 .collect(Collectors.joining("&"));
     }
 
-    static void fetch(String url, Map<String, String> params, BaseNetwork.Method method, NetworkHandler<String> handler) {
+    private static <T> void fetch(String url, T params, BaseNetwork.Method method, NetworkHandler<String> handler, Function<T, String> serializer, String contentType) {
         new Thread(() -> {
             try {
-                String fullUrl = method == Method.GET && !params.isEmpty() ? url + "?" + serialize(params) : url;
+                String content = serializer.apply(params);
+                String fullUrl = method == Method.GET && !content.isEmpty() ? url + "?" + content : url;
                 HttpURLConnection connection = (HttpURLConnection) new URL(fullUrl).openConnection();
                 if (method == Method.POST) connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", contentType);
                 connection.connect();
                 if (method == Method.POST)
-                    connection.getOutputStream().write(serialize(params).getBytes(StandardCharsets.UTF_8));
+                    connection.getOutputStream().write(content.getBytes(StandardCharsets.UTF_8));
                 if (connection.getResponseCode() == 200) {
                     Stream<String> lines = new BufferedReader(new InputStreamReader(connection.getInputStream())).lines();
                     if (lines == null) {
                         throw new NetworkFailureException();
                     }
+                    String result = lines.collect(Collectors.joining("\n"));
                     handler.activity.runOnUiThread(() -> {
                         try {
-                            handler.onSuccess(lines.collect(Collectors.joining("\n")));
+                            handler.onSuccess(result);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     });
-
                 } else {
                     throw new NetworkFailureException();
                 }
@@ -65,5 +70,13 @@ class BaseNetwork {
                 });
             }
         }).start();
+    }
+
+    static void fetch(String url, JSONObject params, BaseNetwork.Method method, NetworkHandler<String> handler) {
+        fetch(url, params, method, handler, JSONAware::toJSONString, "application/json");
+    }
+
+    static void fetch(String url, Map<String, String> params, BaseNetwork.Method method, NetworkHandler<String> handler) {
+        fetch(url, params, method, handler, BaseNetwork::serialize, "application/x-www-form-urlencoded");
     }
 }

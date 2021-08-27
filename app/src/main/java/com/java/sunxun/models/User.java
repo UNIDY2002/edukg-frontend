@@ -2,6 +2,7 @@ package com.java.sunxun.models;
 
 import androidx.annotation.NonNull;
 import com.java.sunxun.exceptions.ApplicationLoginFailureException;
+import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
 import java.util.ArrayList;
@@ -33,7 +34,27 @@ public class User {
     }
 
     private static void performLogin(String username, String password, NetworkHandler<Boolean> handler) {
-        handler.onSuccess(true);
+        ApplicationNetwork.login(username, password, new NetworkHandler<String>(handler.activity) {
+            @Override
+            public void onSuccess(String result) {
+                ApplicationNetwork.getId(new NetworkHandler<String>(handler.activity) {
+                    @Override
+                    public void onSuccess(String result) {
+                        handler.onSuccess(true);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        handler.onError(e);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
     }
 
     public static void login(String username, String password, NetworkHandler<User> handler) {

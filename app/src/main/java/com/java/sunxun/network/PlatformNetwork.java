@@ -14,28 +14,6 @@ import java.util.Map;
 public class PlatformNetwork {
     static String id;
 
-    public static void login(String phone, String password, NetworkHandler<String> handler) {
-        Map<String, String> params = new HashMap<>();
-        params.put("phone", phone);
-        params.put("password", password);
-        BaseNetwork.fetch("http://open.edukg.cn/opedukg/api/typeAuth/user/login", params, BaseNetwork.Method.POST, new NetworkHandler<String>(handler.activity) {
-            @Override
-            public void onSuccess(String result) {
-                JSONObject o = JSON.parseObject(result);
-                if ("0".equals(o.getString("code"))) {
-                    handler.onSuccess(id = o.getString("id"));
-                } else {
-                    handler.onError(new PlatformLoginFailureException());
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                handler.onError(e);
-            }
-        });
-    }
-
     public static void qa(Subject subject, String question, NetworkHandler<Answer> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("course", subject.toString());

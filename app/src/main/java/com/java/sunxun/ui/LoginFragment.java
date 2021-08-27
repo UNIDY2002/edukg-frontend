@@ -1,6 +1,5 @@
 package com.java.sunxun.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
@@ -64,22 +63,12 @@ public class LoginFragment extends Fragment {
                 User.login(username.toString(), password.toString(), new NetworkHandler<User>(this) {
                     @Override
                     public void onSuccess(User user) {
-                        new Thread(() -> {
-                            try {
-                                Thread.sleep(1000);
-                                Activity activity = (Activity) view.getContext();
-                                activity.runOnUiThread(() -> {
-                                    activity.getSharedPreferences("credentials", Context.MODE_PRIVATE)
-                                            .edit()
-                                            .putString("username", user.getUsername())
-                                            .putString("password", user.getPassword())
-                                            .apply();
-                                    NavHostFragment.findNavController(getThis()).navigateUp();
-                                });
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }).start();
+                        view.getContext().getSharedPreferences("credentials", Context.MODE_PRIVATE)
+                                .edit()
+                                .putString("username", user.getUsername())
+                                .putString("password", user.getPassword())
+                                .apply();
+                        NavHostFragment.findNavController(getThis()).navigateUp();
                     }
 
                     @Override
