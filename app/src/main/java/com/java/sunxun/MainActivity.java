@@ -3,6 +3,7 @@ package com.java.sunxun;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -10,11 +11,10 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import com.google.android.material.snackbar.Snackbar;
+import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.databinding.ActivityMainBinding;
 import com.java.sunxun.models.User;
 import com.java.sunxun.network.NetworkHandler;
-import com.java.sunxun.network.PlatformNetwork;
 
 import java.util.Objects;
 
@@ -83,6 +83,18 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        // 初始化单例
+        DetailCacheDB.init(this);
+
+        try {
+            DetailCacheDB db = DetailCacheDB.getInstance();
+            String s = "6666";
+            Log.d("DEBUG", String.valueOf(db.hasCache(s)));
+            db.addCache(s);
+            Log.d("DEBUG", String.valueOf(db.hasCache(s)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
