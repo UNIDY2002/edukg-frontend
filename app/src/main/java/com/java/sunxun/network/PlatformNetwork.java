@@ -3,7 +3,7 @@ package com.java.sunxun.network;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.java.sunxun.exceptions.PlatformLoginFailureException;
+import com.java.sunxun.exceptions.PlatformApiException;
 import com.java.sunxun.models.Answer;
 import com.java.sunxun.models.Linking;
 import com.java.sunxun.models.Subject;
@@ -33,13 +33,13 @@ public class PlatformNetwork {
                             dataItem.getString("value")
                     ));
                 } else {
-                    handler.onError(new PlatformLoginFailureException());
+                    handler.onError(new PlatformApiException(o.getString("code"), o.getString("msg")));
                 }
             }
 
             @Override
             public void onError(Exception e) {
-
+                handler.onError(e);
             }
         });
     }
@@ -68,13 +68,13 @@ public class PlatformNetwork {
                     }
                     handler.onSuccess(linking);
                 } else {
-                    handler.onError(new PlatformLoginFailureException());
+                    handler.onError(new PlatformApiException(o.getString("code"), o.getString("msg")));
                 }
             }
 
             @Override
             public void onError(Exception e) {
-
+                handler.onError(e);
             }
         });
     }
