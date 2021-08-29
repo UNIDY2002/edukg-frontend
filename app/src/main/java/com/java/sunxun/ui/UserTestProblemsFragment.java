@@ -1,0 +1,25 @@
+package com.java.sunxun.ui;
+
+import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import androidx.navigation.fragment.NavHostFragment;
+import com.java.sunxun.R;
+import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
+
+public class UserTestProblemsFragment extends Fragment {
+
+    @Nullable
+    FragmentUserTestProblemsBinding binding;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = FragmentUserTestProblemsBinding.inflate(inflater, container, false);
+        binding.userTestProblemsReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        return binding.getRoot();
+    }
+}

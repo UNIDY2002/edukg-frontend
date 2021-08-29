@@ -33,4 +33,7 @@
     <string name="geo">吉欧</string>
     <string name="politics">政治</string>
     <string name="avatar">头像</string>
+    <string name="user_test">专项测试</string>
+    <string name="user_test_hint">请输入你感兴趣的知识点。</string>
+    <string name="start_test">开始测试</string>
 </resources>
