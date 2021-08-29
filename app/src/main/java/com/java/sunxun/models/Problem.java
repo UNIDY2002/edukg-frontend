@@ -1,5 +1,9 @@
 package com.java.sunxun.models;
 
+import android.util.Pair;
+
+import java.util.*;
+
 public class Problem {
     private final int id;
     private final String question;
@@ -27,5 +31,14 @@ public class Problem {
 
     public String[] getDistractions() {
         return distractions;
+    }
+
+    public Pair<String[], Integer> genRandomOptions(int maxOptionCount) {
+        ArrayList<String> options = new ArrayList<>();
+        options.add(answer);
+        options.addAll(Arrays.asList(distractions));
+        while (options.size() > maxOptionCount) options.remove(options.size() - 1);
+        Collections.shuffle(options);
+        return new Pair<>(options.toArray(new String[0]), options.indexOf(answer));
     }
 }

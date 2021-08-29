@@ -49,11 +49,39 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <LinearLayout
+            android:id="@+id/user_test_correctness_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/user_test_problems_header">
+
+        <View
+                android:id="@+id/user_test_correct"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0"
+                android:background="@color/green"/>
+
+        <View
+                android:id="@+id/user_test_wrong"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0"
+                android:background="@color/red"/>
+
+        <View
+                android:id="@+id/user_test_remaining"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0"/>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/user_test_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/user_test_problems_header"
+            app:layout_constraintTop_toBottomOf="@id/user_test_correctness_indicator"
             app:layout_constraintBottom_toBottomOf="parent">
     </androidx.recyclerview.widget.RecyclerView>
 

@@ -2,6 +2,7 @@ package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,7 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 public class UserTestProblemsFragment extends Fragment {
 
@@ -29,6 +30,17 @@ public class UserTestProblemsFragment extends Fragment {
     FragmentUserTestProblemsBinding binding;
 
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
+
+    private int correct = 0;
+    private int wrong = 0;
+    private int total = 1;
+
+    private void redrawCorrectnessIndicator() {
+        if (binding == null) return;
+        binding.userTestCorrect.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, correct));
+        binding.userTestWrong.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, wrong));
+        binding.userTestRemaining.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, total - correct - wrong));
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -45,6 +57,8 @@ public class UserTestProblemsFragment extends Fragment {
             PlatformNetwork.relatedProblems(bundle.getString("name", ""), new NetworkHandler<ArrayList<Problem>>(this) {
                 @Override
                 public void onSuccess(ArrayList<Problem> problems) {
+                    total = problems.size();
+                    Collections.shuffle(problems);
                     adapter.setProblems(problems);
                 }
 
@@ -65,11 +79,13 @@ public class UserTestProblemsFragment extends Fragment {
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView question;
             LinearLayout options;
+            TextView page;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 question = view.findViewById(R.id.user_test_question);
                 options = view.findViewById(R.id.user_test_options);
+                page = view.findViewById(R.id.user_test_page);
             }
         }
 
@@ -90,16 +106,31 @@ public class UserTestProblemsFragment extends Fragment {
             Problem problem = problems.get(position);
             holder.question.setText(problem.getQuestion());
             holder.options.removeAllViews();
-            ArrayList<String> allOptions = new ArrayList<>();
-            allOptions.add(problem.getAnswer());
-            allOptions.addAll(Arrays.asList(problem.getDistractions()));
-            while (allOptions.size() > alphabet.length) allOptions.remove(allOptions.size() - 1);
-            for (int i = 0; i < allOptions.size(); i++) {
-                String option = allOptions.get(i);
-                @SuppressLint("InflateParams") View view = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
-                ((TextView) view.findViewById(R.id.user_test_option_text)).setText(alphabet[i] + ". " + option);
+            Pair<String[], Integer> options = problems.get(position).genRandomOptions(alphabet.length);
+            TextView[] textViews = new TextView[options.first.length];
+            View[] views = new View[options.first.length];
+            for (int i = 0; i < options.first.length; i++) {
+                String option = options.first[i];
+                @SuppressLint("InflateParams")
+                View view = views[i] = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
+                TextView textView = textViews[i] = view.findViewById(R.id.user_test_option_text);
+                textView.setText(alphabet[i] + ". " + option);
+                final int j = i;
+                view.setOnClickListener(v -> {
+                    if (j == options.second) {
+                        textView.setTextColor(getResources().getColor(R.color.green, null));
+                        correct++;
+                    } else {
+                        textView.setTextColor(getResources().getColor(R.color.red, null));
+                        textViews[options.second].setTextColor(getResources().getColor(R.color.green, null));
+                        wrong++;
+                    }
+                    redrawCorrectnessIndicator();
+                    for (View it : views) it.setEnabled(false);
+                });
                 holder.options.addView(view);
             }
+            holder.page.setText((position + 1) + "/" + problems.size());
         }
 
         @Override
