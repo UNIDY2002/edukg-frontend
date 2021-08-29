@@ -22,7 +22,14 @@ public class UserTestWelcomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentUserTestWelcomeBinding.inflate(inflater, container, false);
         binding.userTestWelcomeReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
-        binding.userTestWelcomeStart.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_user_test_problems));
+        binding.userTestWelcomeStart.setOnClickListener(view -> {
+            Editable editable = binding.userTestWelcomeNameInput.getText();
+            if (editable != null) {
+                Bundle bundle = new Bundle();
+                bundle.putString("name", editable.toString());
+                NavHostFragment.findNavController(this).navigate(R.id.nav_user_test_problems, bundle);
+            }
+        });
         binding.userTestWelcomeNameInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
