@@ -34,6 +34,11 @@ public abstract class RecyclerViewAdapter<T> extends RecyclerView.Adapter<Recycl
         this.convert(holder, mData.get(position));
     }
 
+    public void updateData(List<T> newData) {
+        this.mData = newData;
+        this.notifyDataSetChanged();
+    }
+
     public abstract void convert(ViewHolder holder, T data);
 
     @Override

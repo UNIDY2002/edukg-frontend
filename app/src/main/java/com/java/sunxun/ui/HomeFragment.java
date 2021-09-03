@@ -2,7 +2,6 @@ package com.java.sunxun.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +24,12 @@ import com.java.sunxun.models.Entity;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
+import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
+import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class HomeFragment extends Fragment {
 
@@ -46,26 +48,26 @@ public class HomeFragment extends Fragment {
      * @param isRefresh When true, it means refreshing. When false, it means loading more.
      */
     private void updateEntityList(boolean isRefresh) {
-        if (!isRefresh) ++requestCnt;
+        if (isRefresh) {
+            requestCnt = 0;
+            randomSeed = new Random().nextInt();
+        } else ++requestCnt;
+
         ApplicationNetwork.getEntityList(selectedSubject, requestCnt, entityNumEveryRequest, randomSeed, new NetworkHandler<String>(this) {
             @Override
             public void onSuccess(String result) {
+                // We put clear entities here for safety
+                if (isRefresh) baseEntities.clear();
+
                 JSONArray arr = JSON.parseArray(result);
                 for (int i = 0; i < arr.size(); ++i) {
                     JSONObject o = arr.getJSONObject(i);
                     Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("id"));
                     baseEntities.add(newEntity);
                 }
-                binding.entityList.setLayoutManager(new LinearLayoutManager(HomeFragment.this.getActivity()));
-                binding.entityList.setAdapter(new RecyclerViewAdapter<Entity>(
-                        HomeFragment.this.getActivity(), R.layout.home_entity_item, baseEntities
-                ) {
-                    @Override
-                    public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data) {
-                        ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
-                        ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
-                    }
-                });
+                ((RecyclerViewAdapter<Entity>) binding.entityList.getAdapter()).updateData(baseEntities);
+                if (isRefresh) binding.entityListWrapper.finishRefresh();
+                else binding.entityListWrapper.finishLoadMore();
             }
 
             @Override
@@ -80,11 +82,25 @@ public class HomeFragment extends Fragment {
         binding.homeSearchInput.setOnFocusChangeListener((view, b) -> NavHostFragment.findNavController(this).navigate(R.id.nav_search));
         binding.homeHistoryIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_history));
 
+        binding.entityList.setLayoutManager(new LinearLayoutManager(HomeFragment.this.getActivity()));
+        binding.entityList.setAdapter(new RecyclerViewAdapter<Entity>(
+                HomeFragment.this.getActivity(), R.layout.item_home_entity, baseEntities
+        ) {
+            @Override
+            public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data) {
+                ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
+                ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
+            }
+        });
+
         binding.entityListWrapper.setEnableRefresh(true);
         binding.entityListWrapper.setOnRefreshListener(refreshLayout -> updateEntityList(true));
 
         binding.entityListWrapper.setEnableLoadMore(true);
         binding.entityListWrapper.setOnLoadMoreListener(refreshLayout -> updateEntityList(false));
+
+        binding.entityListWrapper.setRefreshHeader(new ClassicsHeader(this.getActivity()));
+        binding.entityListWrapper.setRefreshFooter(new ClassicsFooter(this.getActivity()));
 
         updateEntityList(true);
 

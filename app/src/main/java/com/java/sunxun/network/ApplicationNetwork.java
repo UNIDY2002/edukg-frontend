@@ -13,8 +13,13 @@ public class ApplicationNetwork {
 
     private static final String BASE_URL = "http://unidy.cn:8080";
 
-    static public void getEntityList(NetworkHandler<String> handler) {
-        BaseNetwork.fetch("https://www.baidu.com", new HashMap<String, String>(), BaseNetwork.Method.GET, new NetworkHandler<String>(handler.activity) {
+    static public void getEntityList(Subject subject, int page, int pageSize, int seed, NetworkHandler<String> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("course", subject.toString());
+        params.put("page", "" + page);
+        params.put("pageSize", "" + pageSize);
+        params.put("seed", "" + seed);
+        BaseNetwork.fetch("http://10.0.2.2:8000/api/getRandomEntity", params, BaseNetwork.Method.GET, new NetworkHandler<String>(handler.activity) {
             @Override
             public void onSuccess(String result) {
                 JSONObject o = JSON.parseObject(result);
