@@ -30,18 +30,12 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@id/home_menu_icon"
-            app:layout_constraintRight_toLeftOf="@id/home_history_icon"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/home_history_icon"
-            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@android:drawable/ic_menu_recent_history"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="@string/search"
+            android:textColor="@color/grey"
+            android:textSize="17sp"
+            android:layout_marginEnd="80dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -57,39 +51,39 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="语文" />
+            android:text="@string/chinese" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="数学" />
+            android:text="@string/math" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="英语" />
+            android:text="@string/english" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="物理" />
+            android:text="@string/physics" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="化学" />
+            android:text="@string/chemistry" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="政治" />
+            android:text="@string/politics" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="历史" />
+            android:text="@string/history" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="生物" />
+            android:text="@string/biology" />
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="地理" />
+            android:text="@string/geo" />
     </com.google.android.material.tabs.TabLayout>
 
     <com.google.android.flexbox.FlexboxLayout
