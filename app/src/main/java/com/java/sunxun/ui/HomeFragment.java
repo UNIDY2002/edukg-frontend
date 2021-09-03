@@ -2,6 +2,7 @@ package com.java.sunxun.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.android.material.tabs.TabLayout;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.databinding.FragmentHomeBinding;
@@ -101,6 +103,20 @@ public class HomeFragment extends Fragment {
 
         binding.entityListWrapper.setRefreshHeader(new ClassicsHeader(this.getActivity()));
         binding.entityListWrapper.setRefreshFooter(new ClassicsFooter(this.getActivity()));
+
+        binding.subjectTab.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                selectedSubject = Subject.fromName(HomeFragment.this.getActivity(), "" + tab.getText());
+                updateEntityList(true);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) { }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) { }
+        });
 
         updateEntityList(true);
 
