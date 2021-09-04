@@ -4,10 +4,10 @@ public class Answer {
     private final String entityName;  // 答案相关实体
     private final String entityUri;  // 答案相关实体 uri
     private final String predicate;  // 答案涉及的实体属性
-    private final Double score;  // 相关度得分
+    private final double score;  // 相关度得分
     private final String value;  // 答案值
 
-    public Answer(String entityName, String entityUri, String predicate, Double score, String value) {
+    public Answer(String entityName, String entityUri, String predicate, double score, String value) {
         this.entityName = entityName;
         this.entityUri = entityUri;
         this.predicate = predicate;
@@ -15,13 +15,23 @@ public class Answer {
         this.value = value;
     }
 
-    public String getEntityName() { return entityName; }
+    public String getEntityName() {
+        return entityName;
+    }
 
-    public String getEntityUri() { return entityUri; }
+    public String getEntityUri() {
+        return entityUri;
+    }
 
-    public String getPredicate() { return predicate; }
+    public String getPredicate() {
+        return predicate;
+    }
 
-    public Double getScore() { return score; }
+    public double getScore() {
+        return score;
+    }
 
-    public String getValue() { return value; }
+    public String getValue() {
+        return value;
+    }
 }
