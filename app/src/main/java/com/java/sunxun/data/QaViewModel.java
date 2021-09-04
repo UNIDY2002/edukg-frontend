@@ -12,8 +12,15 @@ import java.util.ArrayList;
 public class QaViewModel extends ViewModel {
     private final MutableLiveData<ArrayList<Pair<Subject, String>>> qaList = new MutableLiveData<>(new ArrayList<>());
 
+    private final MutableLiveData<Pair<String, String>> currentFastLink = new MutableLiveData<>();
+
     public LiveData<ArrayList<Pair<Subject, String>>> getQaList() {
         return qaList;
+    }
+
+    // (uri, name)
+    public LiveData<Pair<String, String>> getCurrentFastLink() {
+        return currentFastLink;
     }
 
     // if subject is null, then the content is an answer
@@ -23,6 +30,13 @@ public class QaViewModel extends ViewModel {
             data.add(new Pair<>(subject, content));
             qaList.setValue(data);
         }
+    }
+
+    public void setCurrentFastLink(String uri, String name) {
+        if (uri != null && !uri.isEmpty() && name != null && !name.isEmpty())
+            currentFastLink.setValue(new Pair<>(uri, name));
+        else
+            currentFastLink.setValue(null);
     }
 
 }

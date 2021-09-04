@@ -13,8 +13,7 @@
             android:contentDescription="@string/avatar"
             android:src="@drawable/avatar"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
             android:id="@+id/qa_item_text"

@@ -3,6 +3,8 @@ package com.java.sunxun.ui;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.data.QaViewModel;
 import com.java.sunxun.databinding.FragmentQaBinding;
@@ -53,6 +56,23 @@ public class QaFragment extends Fragment {
         binding.qaRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.qaRecyclerView.setAdapter(adapter);
 
+        binding.qaQuestionInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                binding.qaSubmitButton.setEnabled(!s.toString().isEmpty());
+            }
+        });
+
         binding.qaSubmitButton.setOnClickListener(view -> {
             Editable editable = binding.qaQuestionInput.getText();
             if (editable == null) return;
@@ -66,7 +86,15 @@ public class QaFragment extends Fragment {
             PlatformNetwork.qa(subject, question, new NetworkHandler<Answer>(view) {
                 @Override
                 public void onSuccess(Answer result) {
+                    if (result.getScore() < 20) {
+                        viewModel.pushToQaList(null,
+                                result.getPredicate().isEmpty()
+                                        ? getString(R.string.qa_uncertain_without_predicate, result.getEntityName())
+                                        : getString(R.string.qa_uncertain_with_predicate, result.getEntityName(), result.getPredicate())
+                        );
+                    }
                     viewModel.pushToQaList(null, result.getValue());
+                    viewModel.setCurrentFastLink(result.getEntityUri(), result.getEntityName());
                 }
 
                 @Override
@@ -85,6 +113,15 @@ public class QaFragment extends Fragment {
             binding.qaRecyclerView.scrollToPosition(data.size() - 1);
         });
 
+        viewModel.getCurrentFastLink().observe(getViewLifecycleOwner(), data -> {
+            if (data == null) {
+                binding.qaFastLink.setVisibility(View.GONE);
+            } else {
+                binding.qaFastLink.setText(getString(R.string.qa_fast_link_hint, data.second));
+                binding.qaFastLink.setOnClickListener(view -> Snackbar.make(view, "Entity uri = " + data.first, Snackbar.LENGTH_LONG).show());
+                binding.qaFastLink.setVisibility(View.VISIBLE);
+            }
+        });
         return binding.getRoot();
     }
 

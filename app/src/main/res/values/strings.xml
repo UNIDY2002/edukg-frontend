@@ -11,6 +11,9 @@
     <string name="qa_hint">请输入您的问题。</string>
     <string name="qa_submit">提问</string>
     <string name="qa_empty">此问题没有找到答案！</string>
+    <string name="qa_uncertain_without_predicate">我不太确定您问的是什么。您想了解的是 %s 吗？</string>
+    <string name="qa_uncertain_with_predicate">我不太确定您问的是什么。您想问的是 %s 的 %s 吗？</string>
+    <string name="qa_fast_link_hint">点击了解更多 %s 的相关知识。</string>
     <string name="linking_hint">请输入您要链接的文本。</string>
     <string name="linking_submit">链接</string>
     <string name="username">用户名</string>
