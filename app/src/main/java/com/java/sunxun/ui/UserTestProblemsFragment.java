@@ -21,6 +21,7 @@ import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
 import com.java.sunxun.models.Problem;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
+import com.java.sunxun.utils.Share;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,13 +92,13 @@ public class UserTestProblemsFragment extends Fragment {
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView question;
             LinearLayout options;
-            TextView page;
+            View share;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 question = view.findViewById(R.id.user_test_question);
                 options = view.findViewById(R.id.user_test_options);
-                page = view.findViewById(R.id.user_test_page);
+                share = view.findViewById(R.id.user_test_share_button);
             }
         }
 
@@ -118,20 +119,23 @@ public class UserTestProblemsFragment extends Fragment {
             ));
         }
 
-        @SuppressLint("SetTextI18n")
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             if (problems.isEmpty()) return;
             UserProblem problem = problems.get(position);
-            holder.question.setText(problem.question);
+            holder.question.setText(getString(R.string.user_test_question, position + 1, problem.question));
             holder.options.removeAllViews();
+            StringBuilder shareOptions = new StringBuilder();
             for (int i = 0; i < problem.options.length; i++) {
                 String option = problem.options[i];
                 @SuppressLint("InflateParams")
                 View view = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
                 view.setEnabled(problem.selectedId == -1);
                 TextView textView = view.findViewById(R.id.user_test_option_text);
-                textView.setText(alphabet[i] + ". " + option);
+                String optionText = getString(R.string.user_test_option, alphabet[i], option);
+                textView.setText(optionText);
+                shareOptions.append(optionText);
+                shareOptions.append('\n');
                 if (problem.selectedId != -1 && i == problem.answerId)
                     textView.setTextColor(getResources().getColor(R.color.green, null));
                 else if (i == problem.selectedId)
@@ -142,12 +146,15 @@ public class UserTestProblemsFragment extends Fragment {
                         binding.userTestCorrectnessIndicator.getChildAt(position).setBackgroundColor(getResources().getColor(
                                 j == problem.answerId ? R.color.green : R.color.red, null
                         ));
+                    for (int k = 0; k < holder.options.getChildCount(); k++) {
+                        holder.options.getChildAt(k).setEnabled(false);
+                    }
                     problem.selectedId = j;
                     notifyItemChanged(position);
                 });
                 holder.options.addView(view);
             }
-            holder.page.setText((position + 1) + "/" + problems.size());
+            holder.share.setOnClickListener(v -> Share.share(v.getContext(), getString(R.string.user_test_share_template, problem.question, shareOptions)));
         }
 
         @Override

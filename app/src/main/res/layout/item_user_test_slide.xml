@@ -22,11 +22,11 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/user_test_question"/>
 
-    <TextView
-            android:id="@+id/user_test_page"
+    <com.google.android.material.button.MaterialButton
+            android:id="@+id/user_test_share_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
+            android:text="@string/share"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
