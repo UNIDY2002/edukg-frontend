@@ -6,6 +6,7 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -23,6 +24,8 @@ import com.java.sunxun.network.PlatformNetwork;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserTestProblemsFragment extends Fragment {
 
@@ -31,24 +34,13 @@ public class UserTestProblemsFragment extends Fragment {
 
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
 
-    private int correct = 0;
-    private int wrong = 0;
-    private int total = 1;
-
-    private void redrawCorrectnessIndicator() {
-        if (binding == null) return;
-        binding.userTestCorrect.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, correct));
-        binding.userTestWrong.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, wrong));
-        binding.userTestRemaining.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, total - correct - wrong));
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentUserTestProblemsBinding.inflate(inflater, container, false);
         binding.userTestProblemsReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
 
         UserTestAdapter adapter = new UserTestAdapter();
-        binding.userTestRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.userTestRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.userTestRecyclerView.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(binding.userTestRecyclerView);
 
@@ -57,7 +49,14 @@ public class UserTestProblemsFragment extends Fragment {
             PlatformNetwork.relatedProblems(bundle.getString("name", ""), new NetworkHandler<ArrayList<Problem>>(this) {
                 @Override
                 public void onSuccess(ArrayList<Problem> problems) {
-                    total = problems.size();
+                    binding.userTestCorrectnessIndicator.setColumnCount(problems.size());
+                    for (int i = 0; i < problems.size(); i++) {
+                        View view = new View(binding.userTestCorrectnessIndicator.getContext());
+                        GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED), GridLayout.spec(GridLayout.UNDEFINED, 1f));
+                        layoutParams.width = 0;
+                        view.setLayoutParams(layoutParams);
+                        binding.userTestCorrectnessIndicator.addView(view);
+                    }
                     Collections.shuffle(problems);
                     adapter.setProblems(problems);
                 }
@@ -74,7 +73,20 @@ public class UserTestProblemsFragment extends Fragment {
 
     private class UserTestAdapter extends RecyclerView.Adapter<UserTestAdapter.ViewHolder> {
 
-        private ArrayList<Problem> problems = new ArrayList<>();
+        private class UserProblem {
+            String question;
+            String[] options;
+            Integer answerId;
+            Integer selectedId = -1;
+
+            UserProblem(String question, String[] options, Integer answerId) {
+                this.question = question;
+                this.options = options;
+                this.answerId = answerId;
+            }
+        }
+
+        private List<UserProblem> problems = new ArrayList<>();
 
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView question;
@@ -90,43 +102,48 @@ public class UserTestProblemsFragment extends Fragment {
         }
 
         public void setProblems(ArrayList<Problem> problems) {
-            this.problems = problems;
+            this.problems = problems.stream().map(problem -> {
+                Pair<String[], Integer> options = problem.genRandomOptions(alphabet.length);
+                return new UserProblem(problem.getQuestion(), options.first, options.second);
+            }).collect(Collectors.toList());
             notifyDataSetChanged();
         }
 
+        // Problem: 0, Loading: 1
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user_test_slide, parent, false));
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(
+                    viewType == 0 ? R.layout.item_user_test_slide : R.layout.item_user_test_loading_slide, parent, false
+            ));
         }
 
         @SuppressLint("SetTextI18n")
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            Problem problem = problems.get(position);
-            holder.question.setText(problem.getQuestion());
+            if (problems.isEmpty()) return;
+            UserProblem problem = problems.get(position);
+            holder.question.setText(problem.question);
             holder.options.removeAllViews();
-            Pair<String[], Integer> options = problems.get(position).genRandomOptions(alphabet.length);
-            TextView[] textViews = new TextView[options.first.length];
-            View[] views = new View[options.first.length];
-            for (int i = 0; i < options.first.length; i++) {
-                String option = options.first[i];
+            for (int i = 0; i < problem.options.length; i++) {
+                String option = problem.options[i];
                 @SuppressLint("InflateParams")
-                View view = views[i] = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
-                TextView textView = textViews[i] = view.findViewById(R.id.user_test_option_text);
+                View view = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
+                view.setEnabled(problem.selectedId == -1);
+                TextView textView = view.findViewById(R.id.user_test_option_text);
                 textView.setText(alphabet[i] + ". " + option);
+                if (problem.selectedId != -1 && i == problem.answerId)
+                    textView.setTextColor(getResources().getColor(R.color.green, null));
+                else if (i == problem.selectedId)
+                    textView.setTextColor(getResources().getColor(R.color.red, null));
                 final int j = i;
                 view.setOnClickListener(v -> {
-                    if (j == options.second) {
-                        textView.setTextColor(getResources().getColor(R.color.green, null));
-                        correct++;
-                    } else {
-                        textView.setTextColor(getResources().getColor(R.color.red, null));
-                        textViews[options.second].setTextColor(getResources().getColor(R.color.green, null));
-                        wrong++;
-                    }
-                    redrawCorrectnessIndicator();
-                    for (View it : views) it.setEnabled(false);
+                    if (binding != null)
+                        binding.userTestCorrectnessIndicator.getChildAt(position).setBackgroundColor(getResources().getColor(
+                                j == problem.answerId ? R.color.green : R.color.red, null
+                        ));
+                    problem.selectedId = j;
+                    notifyItemChanged(position);
                 });
                 holder.options.addView(view);
             }
@@ -135,7 +152,12 @@ public class UserTestProblemsFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return problems.size();
+            return problems.isEmpty() ? 1 : problems.size();
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return problems.isEmpty() ? 1 : 0;
         }
     }
 }
