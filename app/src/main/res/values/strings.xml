@@ -5,6 +5,7 @@
     <string name="history_record">历史记录</string>
     <string name="qa">问答</string>
     <string name="detail">详情</string>
+    <string name="star">收藏</string>
     <string name="search">检索</string>
     <string name="linking">实体链接</string>
     <string name="qa_hint">请输入您的问题。</string>

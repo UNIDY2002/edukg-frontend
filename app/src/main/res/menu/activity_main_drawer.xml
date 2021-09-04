@@ -22,6 +22,9 @@
             android:id="@+id/menu_user_nav_group"
             android:visible="false">
         <item
+                android:id="@+id/nav_star"
+                android:title="@string/star"/>
+        <item
                 android:id="@+id/nav_logout"
                 android:title="@string/logout"/>
     </group>

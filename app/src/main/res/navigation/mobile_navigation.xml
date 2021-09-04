@@ -30,6 +30,12 @@
             tools:layout="@layout/fragment_detail"/>
 
     <fragment
+            android:id="@+id/nav_star"
+            android:name="com.java.sunxun.ui.StarFragment"
+            android:label="@string/star"
+            tools:layout="@layout/fragment_star"/>
+
+    <fragment
             android:id="@+id/nav_search"
             android:name="com.java.sunxun.ui.SearchFragment"
             android:label="@string/search"
