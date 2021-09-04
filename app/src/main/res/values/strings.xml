@@ -46,4 +46,10 @@
     <string name="user_test_share_template">#eduKGInfo#\n我在 eduKGInfo 里刷到了这道题，大家一起来看看吧！\n\n题目：%s\n\n选项：\n%s</string>
     <string name="share">分享</string>
     <string name="network_error">网络异常，请稍后重试。</string>
+    <string name="customize_subject">自定义要展示的科目</string>
+    <string name="confirm_settings">确认设置</string>
+    <string name="entity_num_per_request">单次加载实体数</string>
+    <string name="nothing_checked_alert">您至少需要选择一个学科。</string>
+    <string name="entity_num_nan_alert">您输入的实体个数不是数字。</string>
+    <string name="entity_num_out_of_range_alert">实体个数应当不小于 5 个不多于 100 个。</string>
 </resources>

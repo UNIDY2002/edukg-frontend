@@ -1,11 +1,15 @@
 package com.java.sunxun.ui;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
@@ -42,17 +48,25 @@ public class HomeFragment extends Fragment {
 
     private Subject selectedSubject = Subject.chinese;
     private int requestCnt = 0;
-    private int entityNumEveryRequest = 15; // TODO: Make it editable later
+    private int entityNumEveryRequest = 15;
     private int randomSeed = 0;
 
-    // TODO: Maybe there exists a better solution
-    final private List<TabLayout.Tab> subjectTabs = new ArrayList<>();
+    final private boolean[] isSubjectChecked = new boolean[subjectNum];
+    private String rawInput = "";
+
+    final static private int subjectNum = 9;
+
+    // This lock prevents updating entity list when params are being reset
+    private boolean requestLock = false;
 
     /**
      * This function will refresh entity list & update UI according to data from net.
      * @param isRefresh When true, it means refreshing. When false, it means loading more.
      */
     private void updateEntityList(boolean isRefresh) {
+        // When locked, do nothing
+        if (requestLock) return;
+
         if (isRefresh) {
             requestCnt = 0;
             randomSeed = new Random().nextInt();
@@ -121,12 +135,80 @@ public class HomeFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) { }
         });
 
-        // Save all the references of the tabs
-        for (int i = 0; i < binding.subjectTab.getTabCount(); ++i) {
-            this.subjectTabs.add(binding.subjectTab.getTabAt(i));
+        for (int i = 0; i < subjectNum; ++i) {
+            // Resolve errors in lambda
+            final int iCopy = i;
+
+            // Initialize tab-related array
+            this.isSubjectChecked[i] = true;
+
+            ((MaterialCheckBox) binding.checkboxGrid.getChildAt(i)).setOnCheckedChangeListener((buttonView, isChecked) -> isSubjectChecked[iCopy] = isChecked);
+            binding.pageSizeInput.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    Editable rawInputHandler = binding.pageSizeInput.getText();
+                    rawInput = rawInputHandler == null ? "" : rawInputHandler.toString();
+                }
+            });
         }
 
         binding.settings.setOnClickListener(v -> binding.expandableTabWrapper.toggle());
+        binding.confirm.setOnClickListener(v -> {
+            // When modifying params, lock the request
+            requestLock = true;
+
+            // Handle exception when the user checked nothing
+            boolean isLegalCheck = false;
+            for (int i = 0; i < subjectNum; ++i) {
+                if (isSubjectChecked[i]) {
+                    selectedSubject = Subject.values()[i];
+                    isLegalCheck = true;
+                    break;
+                }
+            }
+            if (!isLegalCheck) {
+                Snackbar.make(v, R.string.nothing_checked_alert, Snackbar.LENGTH_SHORT).show();
+                requestLock = false;
+                return;
+            }
+
+            binding.subjectTab.removeAllTabs();
+            for (int i = 0; i < subjectNum; ++i) {
+                if (isSubjectChecked[i])
+                    binding.subjectTab.addTab(binding.subjectTab.newTab()
+                            .setText((Subject.values()[i]).toName(HomeFragment.this.getActivity())));
+            }
+
+            // When user input nothing, we ignore it
+            if (rawInput.length() > 0) {
+                int newEntityNum;
+                try {
+                    newEntityNum = Integer.parseInt(rawInput);
+                } catch (Exception e) {
+                    Snackbar.make(v, R.string.entity_num_nan_alert, Snackbar.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                    requestLock = false;
+                    return;
+                }
+                if (newEntityNum < 5 || newEntityNum > 100) {
+                    Snackbar.make(v, R.string.entity_num_out_of_range_alert, Snackbar.LENGTH_SHORT).show();
+                    requestLock = false;
+                    return;
+                }
+                entityNumEveryRequest = newEntityNum;
+            }
+
+            // Shrink the drawer & update entity list
+            binding.expandableTabWrapper.toggle();
+            requestLock = false;
+            updateEntityList(true);
+        });
 
         updateEntityList(true);
 
