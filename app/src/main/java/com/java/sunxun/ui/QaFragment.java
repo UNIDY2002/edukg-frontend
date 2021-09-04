@@ -121,6 +121,9 @@ public class QaFragment extends Fragment {
                 binding.qaFastLink.setVisibility(View.VISIBLE);
             }
         });
+
+        viewModel.pushToQaList(null, getString(R.string.qa_welcome));
+
         return binding.getRoot();
     }
 
