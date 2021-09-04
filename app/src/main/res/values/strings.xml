@@ -38,4 +38,5 @@
     <string name="user_test_hint">请输入你感兴趣的知识点。</string>
     <string name="start_test">开始测试</string>
     <string name="share">分享</string>
+    <string name="network_error">网络异常，请稍后重试。</string>
 </resources>
