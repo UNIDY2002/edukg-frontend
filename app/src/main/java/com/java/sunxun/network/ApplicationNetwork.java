@@ -11,7 +11,7 @@ import java.util.Map;
 public class ApplicationNetwork {
     static String id;
 
-    private static final String BASE_URL = "http://unidy.cn:8080";
+    private static final String BASE_URL = "https://www.unidy.cn/edukg";
 
     static public void getEntityList(Subject subject, int page, int pageSize, int seed, NetworkHandler<String> handler) {
         Map<String, String> params = new HashMap<>();
