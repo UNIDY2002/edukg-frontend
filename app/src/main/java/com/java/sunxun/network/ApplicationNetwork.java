@@ -11,7 +11,8 @@ import java.util.Map;
 public class ApplicationNetwork {
     static String id;
 
-    private static final String BASE_URL = "https://www.unidy.cn/edukg";
+    private static final String BACKEND_URL = "https://www.unidy.cn/edukg/backend";
+    private static final String DATABASE_URL = "https://www.unidy.cn/edukg/database";
 
     static public void getEntityList(Subject subject, int page, int pageSize, int seed, NetworkHandler<String> handler) {
         Map<String, String> params = new HashMap<>();
@@ -36,7 +37,7 @@ public class ApplicationNetwork {
         JSONObject params = new JSONObject();
         params.put("username", username);
         params.put("password", password);
-        BaseNetwork.fetch(BASE_URL + "/api/login", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(BACKEND_URL + "/api/login", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess(id = o.getString("id"));
@@ -50,7 +51,7 @@ public class ApplicationNetwork {
     }
 
     public static void getId(NetworkHandler<String> handler) {
-        BaseNetwork.fetch(BASE_URL + "/api/getId", new HashMap<>(), BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(BACKEND_URL + "/api/getId", new HashMap<>(), BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess(PlatformNetwork.id = o.getString("id"));
@@ -74,7 +75,7 @@ public class ApplicationNetwork {
         JSONObject params = new JSONObject();
         params.put("id", id);
         params.put("uri", uri);
-        BaseNetwork.fetch(BASE_URL + "/api/star", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(DATABASE_URL + "/api/star", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess("1".equals(o.getString("data")));
@@ -97,7 +98,7 @@ public class ApplicationNetwork {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
         params.put("uri", uri);
-        BaseNetwork.fetch(BASE_URL + "/api/isStar", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(DATABASE_URL + "/api/isStar", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess("1".equals(o.getString("data")));
@@ -113,7 +114,7 @@ public class ApplicationNetwork {
     public static void getStarList(NetworkHandler<ArrayList<String>> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
-        BaseNetwork.fetch(BASE_URL + "/api/getStarList", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(DATABASE_URL + "/api/getStarList", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 JSONArray data = o.getJSONArray("data");
