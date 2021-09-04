@@ -1,9 +1,7 @@
 package com.java.sunxun.network;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.java.sunxun.exceptions.PlatformLoginFailureException;
 import com.java.sunxun.models.Subject;
 
 import java.util.ArrayList;
@@ -21,16 +19,10 @@ public class ApplicationNetwork {
         params.put("page", "" + page);
         params.put("pageSize", "" + pageSize);
         params.put("seed", "" + seed);
-        BaseNetwork.fetch("http://10.0.2.2:8000/api/getRandomEntity", params, BaseNetwork.Method.GET, new NetworkHandler<String>(handler.activity) {
+        BaseNetwork.fetch("http://10.0.2.2:8000/api/getRandomEntity", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
-            public void onSuccess(String result) {
-                JSONObject o = JSON.parseObject(result);
-                if ("0".equals(o.getString("code"))) {
-                    handler.onSuccess(o.getString("data"));
-                } else {
-                    // TODO: Write a better exception!
-                    handler.onError(new Exception());
-                }
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(o.getString("data"));
             }
 
             @Override
@@ -44,15 +36,10 @@ public class ApplicationNetwork {
         JSONObject params = new JSONObject();
         params.put("username", username);
         params.put("password", password);
-        BaseNetwork.fetch(BASE_URL + "/api/login", params, BaseNetwork.Method.POST, new NetworkHandler<String>(handler.activity) {
+        BaseNetwork.fetch(BASE_URL + "/api/login", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
-            public void onSuccess(String result) {
-                JSONObject o = JSON.parseObject(result);
-                if ("0".equals(o.getString("code"))) {
-                    handler.onSuccess(id = o.getString("id"));
-                } else {
-                    handler.onError(new PlatformLoginFailureException());
-                }
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(id = o.getString("id"));
             }
 
             @Override
@@ -63,15 +50,10 @@ public class ApplicationNetwork {
     }
 
     public static void getId(NetworkHandler<String> handler) {
-        BaseNetwork.fetch(BASE_URL + "/api/getId", new HashMap<>(), BaseNetwork.Method.GET, new NetworkHandler<String>(handler.activity) {
+        BaseNetwork.fetch(BASE_URL + "/api/getId", new HashMap<>(), BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
-            public void onSuccess(String result) {
-                JSONObject o = JSON.parseObject(result);
-                if ("0".equals(o.getString("code"))) {
-                    handler.onSuccess(PlatformNetwork.id = o.getString("id"));
-                } else {
-                    handler.onError(new PlatformLoginFailureException());
-                }
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(PlatformNetwork.id = o.getString("id"));
             }
 
             @Override
