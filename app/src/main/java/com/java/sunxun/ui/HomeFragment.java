@@ -45,6 +45,9 @@ public class HomeFragment extends Fragment {
     private int entityNumEveryRequest = 15; // TODO: Make it editable later
     private int randomSeed = 0;
 
+    // TODO: Maybe there exists a better solution
+    final private List<TabLayout.Tab> subjectTabs = new ArrayList<>();
+
     /**
      * This function will refresh entity list & update UI according to data from net.
      * @param isRefresh When true, it means refreshing. When false, it means loading more.
@@ -117,6 +120,13 @@ public class HomeFragment extends Fragment {
             @Override
             public void onTabReselected(TabLayout.Tab tab) { }
         });
+
+        // Save all the references of the tabs
+        for (int i = 0; i < binding.subjectTab.getTabCount(); ++i) {
+            this.subjectTabs.add(binding.subjectTab.getTabAt(i));
+        }
+
+        binding.settings.setOnClickListener(v -> binding.expandableTabWrapper.toggle());
 
         updateEntityList(true);
 
