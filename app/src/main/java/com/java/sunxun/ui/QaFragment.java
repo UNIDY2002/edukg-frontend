@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,7 +68,7 @@ public class QaFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                binding.qaSubmitButton.setEnabled(!s.toString().isEmpty());
+                binding.qaSubmitButton.setEnabled(!s.toString().trim().isEmpty());
             }
         });
 

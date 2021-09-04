@@ -25,6 +25,11 @@ public class PlatformNetwork {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 JSONObject dataItem = o.getJSONArray("data").getJSONObject(0);
+                final String NO_ANSWER = "此问题没有找到答案！";
+                if (NO_ANSWER.equals(dataItem.getString("message"))) {
+                    handler.onSuccess(new Answer("", "", "", 100, NO_ANSWER));
+                    return;
+                }
                 handler.onSuccess(new Answer(
                         dataItem.getString("subject"),
                         dataItem.getString("subjectUri"),
