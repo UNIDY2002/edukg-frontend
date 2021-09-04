@@ -1,10 +1,12 @@
 package com.java.sunxun.network;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.exceptions.PlatformLoginFailureException;
 import com.java.sunxun.models.Subject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +34,9 @@ public class ApplicationNetwork {
             }
 
             @Override
-            public void onError(Exception e) { handler.onError(e); }
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
         });
     }
 
@@ -68,6 +72,74 @@ public class ApplicationNetwork {
                 } else {
                     handler.onError(new PlatformLoginFailureException());
                 }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    /**
+     * 用户收藏/取消收藏实体
+     * 未收藏的实体，操作后被收藏。已收藏的实体，操作后被取消收藏。
+     *
+     * @param uri     实体 uri
+     * @param handler false 表示取消收藏成功，true 表示收藏成功
+     */
+    public static void star(String uri, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("id", id);
+        params.put("uri", uri);
+        BaseNetwork.fetch(BASE_URL + "/api/star", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess("1".equals(o.getString("data")));
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    /**
+     * 询问用户是否已收藏某给定实体
+     *
+     * @param uri     实体 uri
+     * @param handler false 表示用户未收藏，true 表示用户已收藏
+     */
+    public static void isStar(String uri, NetworkHandler<Boolean> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        params.put("uri", uri);
+        BaseNetwork.fetch(BASE_URL + "/api/isStar", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess("1".equals(o.getString("data")));
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void getStarList(NetworkHandler<ArrayList<String>> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        BaseNetwork.fetch(BASE_URL + "/api/getStarList", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                JSONArray data = o.getJSONArray("data");
+                ArrayList<String> result = new ArrayList<>();
+                for (int i = 0; i < data.size(); i++) {
+                    result.add(data.getString(i));
+                }
+                handler.onSuccess(result);
             }
 
             @Override
