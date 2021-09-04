@@ -16,6 +16,11 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.DefaultValueFormatter;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
 import com.java.sunxun.models.Problem;
@@ -26,6 +31,7 @@ import com.java.sunxun.utils.Share;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class UserTestProblemsFragment extends Fragment {
@@ -77,10 +83,10 @@ public class UserTestProblemsFragment extends Fragment {
         private class UserProblem {
             String question;
             String[] options;
-            Integer answerId;
-            Integer selectedId = -1;
+            int answerId;
+            int selectedId = -1;
 
-            UserProblem(String question, String[] options, Integer answerId) {
+            UserProblem(String question, String[] options, int answerId) {
                 this.question = question;
                 this.options = options;
                 this.answerId = answerId;
@@ -93,12 +99,14 @@ public class UserTestProblemsFragment extends Fragment {
             TextView question;
             LinearLayout options;
             View share;
+            PieChart pieChart;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 question = view.findViewById(R.id.user_test_question);
                 options = view.findViewById(R.id.user_test_options);
                 share = view.findViewById(R.id.user_test_share_button);
+                pieChart = view.findViewById(R.id.user_test_summary_pie_chart);
             }
         }
 
@@ -110,18 +118,48 @@ public class UserTestProblemsFragment extends Fragment {
             notifyDataSetChanged();
         }
 
-        // Problem: 0, Loading: 1
+        // Problem: 0, Loading: 1, Summary: 2
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(
-                    viewType == 0 ? R.layout.item_user_test_slide : R.layout.item_user_test_loading_slide, parent, false
+                    viewType == 0
+                            ? R.layout.item_user_test_slide
+                            : viewType == 1
+                            ? R.layout.item_user_test_loading_slide
+                            : R.layout.item_user_test_summary_slide,
+                    parent,
+                    false
             ));
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             if (problems.isEmpty()) return;
+            if (position == problems.size()) {
+                List<PieEntry> entries = new ArrayList<>();
+                int correct = 0;
+                int wrong = 0;
+                for (UserProblem problem : problems) {
+                    if (problem.answerId == problem.selectedId) correct++;
+                    else wrong++;
+                }
+                entries.add(new PieEntry(correct));
+                entries.add(new PieEntry(wrong));
+                PieDataSet dataSet = new PieDataSet(entries, "");
+                dataSet.setColors(0xff00ff00, 0xffff0000);
+                dataSet.setValueFormatter(new DefaultValueFormatter(0));
+                dataSet.setValueTextSize(16);
+                PieData pieData = new PieData(dataSet);
+                holder.pieChart.setDrawCenterText(true);
+                holder.pieChart.setCenterTextSize(16);
+                holder.pieChart.getLegend().setEnabled(false);
+                holder.pieChart.setCenterText(String.format(Locale.getDefault(), "%.2f", correct * 100.0 / (correct + wrong)) + "%");
+                holder.pieChart.setData(pieData);
+                holder.pieChart.getDescription().setEnabled(false);
+                holder.pieChart.setTouchEnabled(false);
+                return;
+            }
             UserProblem problem = problems.get(position);
             holder.question.setText(getString(R.string.user_test_question, position + 1, problem.question));
             holder.options.removeAllViews();
@@ -151,6 +189,7 @@ public class UserTestProblemsFragment extends Fragment {
                     }
                     problem.selectedId = j;
                     notifyItemChanged(position);
+                    if (problems.stream().allMatch(p -> p.selectedId != -1)) notifyItemInserted(problems.size());
                 });
                 holder.options.addView(view);
             }
@@ -159,12 +198,12 @@ public class UserTestProblemsFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return problems.isEmpty() ? 1 : problems.size();
+            return problems.isEmpty() ? 1 : problems.size() + (problems.stream().allMatch(problem -> problem.selectedId != -1) ? 1 : 0);
         }
 
         @Override
         public int getItemViewType(int position) {
-            return problems.isEmpty() ? 1 : 0;
+            return problems.isEmpty() ? 1 : position == problems.size() ? 2 : 0;
         }
     }
 }
