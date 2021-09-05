@@ -62,6 +62,7 @@ class BaseNetwork {
                 }
             } catch (Exception e) {
                 try {
+                    if (handler.activity == null) return;
                     handler.activity.runOnUiThread(() -> {
                         try {
                             handler.onError(e);
