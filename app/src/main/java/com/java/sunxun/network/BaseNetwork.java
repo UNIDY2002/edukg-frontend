@@ -61,13 +61,17 @@ class BaseNetwork {
                     throw new NetworkFailureException();
                 }
             } catch (Exception e) {
-                handler.activity.runOnUiThread(() -> {
-                    try {
-                        handler.onError(e);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                });
+                try {
+                    handler.activity.runOnUiThread(() -> {
+                        try {
+                            handler.onError(e);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
             }
         }).start();
     }

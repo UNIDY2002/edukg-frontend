@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentSearchBinding;
@@ -72,11 +74,11 @@ public class SearchFragment extends Fragment {
         binding = null;
     }
 
-    private class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-        private final int BASE = 0;
+    private class Adapter extends RecyclerView.Adapter<Adapter.BaseViewHolder> {
 
         private final int WITH_CONTENT = 1;
+
+        private final int WITH_IMAGE = 2;
 
         boolean loaded = false;
 
@@ -104,12 +106,23 @@ public class SearchFragment extends Fragment {
             }
         }
 
+        private class ViewHolderWithImage extends BaseViewHolder {
+            public ImageView image;
+
+            public ViewHolderWithImage(@NonNull View view) {
+                super(view);
+                image = view.findViewById(R.id.search_result_image);
+            }
+        }
+
         @NonNull
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             switch (viewType) {
                 case WITH_CONTENT:
                     return new ViewHolderWithContent(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_content, parent, false));
+                case WITH_IMAGE:
+                    return new ViewHolderWithImage(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_image, parent, false));
                 default:
                     return new BaseViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_base_result, parent, false));
             }
@@ -117,44 +130,45 @@ public class SearchFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull BaseViewHolder holder, int position) {
+            SearchResult item = data.get(position);
+            holder.baseResultContainer.setOnClickListener(v -> {
+                Bundle bundle = new Bundle();
+                bundle.putInt("subject", 0);
+                bundle.putString("name", item.getLabel());
+                bundle.putString("uri", item.getUri());
+                NavHostFragment.findNavController(SearchFragment.this).navigate(R.id.nav_detail, bundle);
+            });
+            holder.baseResultName.setText(item.getLabel());
+            holder.baseResultType.setText(item.getCategory());
+
             if (holder instanceof ViewHolderWithContent) {
-                SearchResultWithContent item = (SearchResultWithContent) data.get(position);
+                SearchResultWithContent itemWithContent = (SearchResultWithContent) data.get(position);
                 ViewHolderWithContent viewHolderWithContent = (ViewHolderWithContent) holder;
-                viewHolderWithContent.baseResultContainer.setOnClickListener(v -> {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("subject", 0);
-                    bundle.putString("name", item.getLabel());
-                    bundle.putString("uri", item.getUri());
-                    NavHostFragment.findNavController(SearchFragment.this).navigate(R.id.nav_detail, bundle);
-                });
-                viewHolderWithContent.baseResultName.setText(item.getLabel());
-                viewHolderWithContent.baseResultType.setText(item.getCategory());
-                viewHolderWithContent.content.setText(item.content);
-            } else if (holder instanceof BaseViewHolder) {
-                SearchResult item = data.get(position);
-                BaseViewHolder baseViewHolder = (BaseViewHolder) holder;
-                baseViewHolder.baseResultContainer.setOnClickListener(v -> {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("subject", 0);
-                    bundle.putString("name", item.getLabel());
-                    bundle.putString("uri", item.getUri());
-                    NavHostFragment.findNavController(SearchFragment.this).navigate(R.id.nav_detail, bundle);
-                });
-                baseViewHolder.baseResultName.setText(item.getLabel());
-                baseViewHolder.baseResultType.setText(item.getCategory());
+                viewHolderWithContent.content.setText(itemWithContent.content);
+            } else if (holder instanceof ViewHolderWithImage) {
+                SearchResultWithImage itemWithImage = (SearchResultWithImage) data.get(position);
+                ViewHolderWithImage viewHolderWithImage = (ViewHolderWithImage) holder;
+                Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).into(viewHolderWithImage.image);
+            } else {
                 new Timer(true).schedule(new TimerTask() {
                     @Override
                     public void run() {
                         PlatformNetwork.queryByUri(Subject.chinese, item.getUri(), new NetworkHandler<InfoByUri>(SearchFragment.this) {
                             @Override
                             public void onSuccess(InfoByUri result) {
-                                List<String> feature = result.getFeature("内容");
-                                if (feature != null) {
-                                    data.set(position, new SearchResultWithContent(item, feature.get(0)));
-                                    activity.runOnUiThread(() -> {
-                                        notifyItemChanged(position);
-                                    });
+                                List<String> featureImage = result.getFeature("图片");
+                                if (featureImage != null) {
+                                    data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
+                                    activity.runOnUiThread(() -> notifyItemChanged(position));
+                                    return;
+                                }
+
+                                List<String> featureContent = result.getFeature("内容");
+                                if (featureContent != null) {
+                                    data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                    activity.runOnUiThread(() -> notifyItemChanged(position));
+                                    return;
                                 }
                             }
 
@@ -177,8 +191,10 @@ public class SearchFragment extends Fragment {
         public int getItemViewType(int position) {
             if (data.get(position) instanceof SearchResultWithContent) {
                 return WITH_CONTENT;
+            } else if (data.get(position) instanceof SearchResultWithImage) {
+                return WITH_IMAGE;
             } else {
-                return BASE;
+                return 0;
             }
         }
 
@@ -194,6 +210,15 @@ public class SearchFragment extends Fragment {
             public SearchResultWithContent(SearchResult searchResult, String content) {
                 super(searchResult.getLabel(), searchResult.getCategory(), searchResult.getUri());
                 this.content = content;
+            }
+        }
+
+        private class SearchResultWithImage extends SearchResult {
+            String imageUrl;
+
+            public SearchResultWithImage(SearchResult searchResult, String imageUrl) {
+                super(searchResult.getLabel(), searchResult.getCategory(), searchResult.getUri());
+                this.imageUrl = imageUrl;
             }
         }
 
