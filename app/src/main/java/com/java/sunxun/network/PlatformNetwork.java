@@ -14,7 +14,31 @@ import java.util.regex.Pattern;
 public class PlatformNetwork {
     static String id;
 
-    public static void queryByName(@NonNull Subject subject,@NonNull String name, NetworkHandler<InfoByName> handler) {
+    public static void searchInstance(@NonNull Subject subject, @NonNull String keyword, NetworkHandler<ArrayList<SearchResult>> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("course", subject.toString());
+        params.put("searchKey", keyword);
+        params.put("id", id);
+        BaseNetwork.fetch("http://open.edukg.cn/opedukg/api/typeOpen/open/instanceList", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                ArrayList<SearchResult> results = new ArrayList<>();
+                JSONArray data = o.getJSONArray("data");
+                for (int i = 0; i < data.size(); i++) {
+                    JSONObject item = data.getJSONObject(i);
+                    results.add(new SearchResult(item.getString("label"), item.getString("category"), item.getString("uri")));
+                }
+                handler.onSuccess(results);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void queryByName(@NonNull Subject subject, @NonNull String name, NetworkHandler<InfoByName> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("course", subject.toString());
         params.put("name", name);
