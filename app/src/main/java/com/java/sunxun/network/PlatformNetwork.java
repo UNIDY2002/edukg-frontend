@@ -7,6 +7,7 @@ import com.java.sunxun.models.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,6 +53,39 @@ public class PlatformNetwork {
             @Override
             public void onError(Exception e) {
 
+            }
+        });
+    }
+
+    public static void queryByUri(@NonNull Subject subject, @NonNull String uri, NetworkHandler<InfoByUri> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("course", subject.toString());
+        params.put("uri", uri);
+        params.put("id", id);
+        BaseNetwork.fetch("http://open.edukg.cn/opedukg/api/typeOpen/open/getKnowledgeCard", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                JSONObject data = o.getJSONObject("data");
+                Map<String, List<String>> features = new HashMap<>();
+                JSONArray featureList = data.getJSONArray("entity_features");
+                for (int i = 0; i < featureList.size(); i++) {
+                    JSONObject feature = featureList.getJSONObject(i);
+                    String key = feature.getString("feature_key");
+                    List<String> value = features.get(key);
+                    if (value == null) {
+                        value = new ArrayList<>();
+                        value.add(feature.getString("feature_value"));
+                        features.put(key, value);
+                    } else {
+                        value.add(feature.getString("feature_value"));
+                    }
+                }
+                handler.onSuccess(new InfoByUri(o.getString("entity_name"), o.getString("entity_type"), features));
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
             }
         });
     }
