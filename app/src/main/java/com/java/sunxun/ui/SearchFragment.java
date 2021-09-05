@@ -3,7 +3,10 @@ package com.java.sunxun.ui;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -20,13 +23,15 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentSearchBinding;
-import com.java.sunxun.models.InfoByUri;
 import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * The ugliest code I've ever written.
@@ -238,7 +243,7 @@ public class SearchFragment extends Fragment {
                     popupMenu.show();
                 });
                 headerViewHolder.filterCategoryText.setText(headerSearchResult.categorySelected == null ? getString(R.string.all) : headerSearchResult.categorySelected);
-            } else {
+            } /* else {
                 new Timer(true).schedule(new TimerTask() {
                     @Override
                     public void run() {
@@ -273,7 +278,7 @@ public class SearchFragment extends Fragment {
                         });
                     }
                 }, position * 200L);
-            }
+            } */
         }
 
         @Override
