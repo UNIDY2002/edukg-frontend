@@ -109,7 +109,6 @@ public class SearchFragment extends Fragment {
         Adapter(List<SearchResult> source) {
             data.add(new HeaderSearchResult());
             data.addAll(source);
-            notifyDataSetChanged();
         }
 
         private class BaseViewHolder extends RecyclerView.ViewHolder {
@@ -211,6 +210,8 @@ public class SearchFragment extends Fragment {
                 }
                 headerViewHolder.sortMethodRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
                     if (binding == null) return;
+                    if (headerSearchResult.selection == null && checkedId == -1 || headerSearchResult.selection != null && headerSearchResult.selection == checkedId)
+                        return;
                     binding.searchRecyclerView.post(() -> {
                         headerSearchResult.selection = checkedId;
                         List<SearchResult> results = new ArrayList<>(data.subList(1, data.size()));
