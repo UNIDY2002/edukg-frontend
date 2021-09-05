@@ -78,4 +78,36 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton.Icon"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+            android:id="@+id/detail_shadow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:visibility="gone"/>
+
+    <LinearLayout
+            android:id="@+id/detail_share_popup_container"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:paddingTop="20dp"
+            android:paddingHorizontal="10dp"
+            android:background="@drawable/shape_share_popup_background"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_to_folder"
+                android:textColor="@color/black"
+                android:textSize="20sp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/detail_share_popup_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

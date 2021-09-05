@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
+import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
 import com.java.sunxun.models.InfoByName;
@@ -19,6 +23,8 @@ import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
+
+import java.util.ArrayList;
 
 /**
  * 使用 Bundle 传參，导航方式形如 NavController.navigate(R.id.nav_detail, bundle);
@@ -70,11 +76,62 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            RecyclerViewAdapter<String> shareFolderListAdapter = new RecyclerViewAdapter<String>(context, R.layout.item_star_folder, new ArrayList<>()) {
+                @Override
+                public void convert(ViewHolder holder, String data, int position) {
+                    TextView textView = holder.getViewById(R.id.star_folder_name_text);
+                    textView.setText(data);
+                    textView.setOnClickListener(v -> ApplicationNetwork.star(uri, new NetworkHandler<Boolean>(v) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+                            viewModel.setStarStatus(result);
+                            binding.detailShadow.callOnClick();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Snackbar.make(v, R.string.star_fail, Snackbar.LENGTH_SHORT).show();
+                        }
+                    }));
+                }
+            };
+
             binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()), uri)));
 
             binding.detailStarButton.setOnClickListener(v -> {
+                Boolean starStatus = viewModel.getStarStatus().getValue();
+                if (starStatus != null && starStatus) {
+                    ApplicationNetwork.star(uri, new NetworkHandler<Boolean>(v) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+                            viewModel.setStarStatus(result);
+                        }
 
+                        @Override
+                        public void onError(Exception e) {
+                            Snackbar.make(v, R.string.cancel_star_fail, Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    binding.detailShadow.setVisibility(View.VISIBLE);
+                    binding.detailSharePopupContainer.setVisibility(View.VISIBLE);
+                    ArrayList<String> fakeFolderList = new ArrayList<>();
+                    fakeFolderList.add(getString(R.string.default_folder));
+                    shareFolderListAdapter.updateData(fakeFolderList);
+                }
             });
+
+            binding.detailShadow.setOnClickListener(v -> {
+                binding.detailShadow.setVisibility(View.GONE);
+                binding.detailSharePopupContainer.setVisibility(View.GONE);
+            });
+
+            binding.detailSharePopupContainer.setOnClickListener(v -> {
+            });
+
+            binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+
+            binding.detailSharePopupRecyclerView.setAdapter(shareFolderListAdapter);
         }
 
         viewModel.getStarStatus().observe(getViewLifecycleOwner(), starStatus -> {
