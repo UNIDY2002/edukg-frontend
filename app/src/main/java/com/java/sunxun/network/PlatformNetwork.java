@@ -1,11 +1,9 @@
 package com.java.sunxun.network;
 
+import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.java.sunxun.models.Answer;
-import com.java.sunxun.models.Linking;
-import com.java.sunxun.models.Problem;
-import com.java.sunxun.models.Subject;
+import com.java.sunxun.models.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +14,25 @@ import java.util.regex.Pattern;
 public class PlatformNetwork {
     static String id;
 
-    public static void qa(Subject subject, String question, NetworkHandler<Answer> handler) {
+    public static void queryByName(@NonNull Subject subject,@NonNull String name, NetworkHandler<InfoByName> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("course", subject.toString());
+        params.put("name", name);
+        params.put("id", id);
+        BaseNetwork.fetch("http://open.edukg.cn/opedukg/api/typeOpen/open/infoByInstanceName", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        });
+    }
+
+    public static void qa(@NonNull Subject subject, @NonNull String question, NetworkHandler<Answer> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("course", subject.toString());
         params.put("inputQuestion", question);
@@ -46,7 +62,7 @@ public class PlatformNetwork {
         });
     }
 
-    public static void linking(Subject subject, String context, NetworkHandler<Linking> handler) {
+    public static void linking(@NonNull Subject subject, @NonNull String context, NetworkHandler<Linking> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("course", subject.toString());
         params.put("context", context);
@@ -76,7 +92,7 @@ public class PlatformNetwork {
         });
     }
 
-    public static void relatedProblems(String name, NetworkHandler<ArrayList<Problem>> handler) {
+    public static void relatedProblems(@NonNull String name, NetworkHandler<ArrayList<Problem>> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("uriName", name);
         params.put("id", id);

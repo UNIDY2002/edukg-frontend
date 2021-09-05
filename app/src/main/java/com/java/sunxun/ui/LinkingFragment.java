@@ -7,27 +7,34 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.view.*;
-import android.widget.PopupMenu;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
+import com.java.sunxun.data.LinkingViewModel;
 import com.java.sunxun.databinding.FragmentLinkingBinding;
 import com.java.sunxun.models.Linking;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
+import com.java.sunxun.utils.Components;
 
 public class LinkingFragment extends Fragment {
 
     @Nullable
     FragmentLinkingBinding binding;
 
+    private LinkingViewModel viewModel;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(this).get(LinkingViewModel.class);
         binding = FragmentLinkingBinding.inflate(inflater, container, false);
         binding.linkingAnswerField.setMovementMethod(LinkMovementMethod.getInstance());
         binding.linkingReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
@@ -36,38 +43,44 @@ public class LinkingFragment extends Fragment {
         binding.linkingStateToggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
             if (checkedId == R.id.linking_edit_icon) {
-                binding.linkingAnswerField.setVisibility(View.GONE);
-                binding.linkingQuestionField.setVisibility(View.VISIBLE);
-                binding.linkingQuestionInput.setEnabled(true);
+                if (viewModel.getMode().getValue() == LinkingViewModel.Mode.EDIT) return;
+                viewModel.setMode(LinkingViewModel.Mode.EDIT);
             } else {
+                // Validate
+                if (viewModel.getMode().getValue() != LinkingViewModel.Mode.EDIT) return;
                 Editable editable = binding.linkingQuestionInput.getText();
                 if (editable == null) return;
                 Context context = getContext();
                 if (context == null) return;
                 Subject subject = Subject.fromName(context, binding.linkingSubjectText.getText().toString());
                 if (subject == null) return;
-                binding.linkingQuestionInput.setEnabled(false);
+                viewModel.setMode(LinkingViewModel.Mode.RUNNING);
                 Snackbar.make(binding.linkingQuestionField, R.string.querying, Snackbar.LENGTH_SHORT).show();
+
+                // Search
                 PlatformNetwork.linking(subject, editable.toString(), new NetworkHandler<Linking>(this) {
                     @Override
                     public void onSuccess(Linking result) {
-                        if (binding.linkingStateToggleGroup.getCheckedButtonId() != R.id.linking_start_icon) return;
+                        if (viewModel.getMode().getValue() != LinkingViewModel.Mode.RUNNING) return;
                         Snackbar.make(binding.linkingQuestionField, R.string.query_done, Snackbar.LENGTH_SHORT).show();
                         SpannableString spannableString = new SpannableString(result.getContext());
                         result.getLinkingResults().forEach(linkingResult -> spannableString.setSpan(
                                 new ClickableSpan() {
                                     @Override
                                     public void onClick(@NonNull View widget) {
-                                        Snackbar.make(widget, "Entity uri = " + linkingResult.getEntityUri(), Snackbar.LENGTH_LONG).show();
+                                        Bundle bundle = new Bundle();
+                                        bundle.putInt("subject", subject.ordinal());
+                                        bundle.putString("name", linkingResult.getEntity());
+                                        bundle.putString("uri", linkingResult.getEntityUri());
+                                        NavHostFragment.findNavController(LinkingFragment.this).navigate(R.id.nav_detail, bundle);
                                     }
                                 },
                                 linkingResult.getStartIndex(),
                                 linkingResult.getEndIndex() + 1,
                                 Spanned.SPAN_INCLUSIVE_INCLUSIVE
                         ));
-                        binding.linkingQuestionField.setVisibility(View.GONE);
-                        binding.linkingAnswerField.setVisibility(View.VISIBLE);
-                        binding.linkingAnswerField.setText(spannableString);
+                        viewModel.setMode(LinkingViewModel.Mode.DONE);
+                        viewModel.setResult(spannableString);
                     }
 
                     @Override
@@ -78,15 +91,32 @@ public class LinkingFragment extends Fragment {
             }
         });
 
-        binding.linkingSubjectText.setOnClickListener(view -> {
-            PopupMenu popupMenu = new PopupMenu(getContext(), view);
-            popupMenu.getMenuInflater().inflate(R.menu.subject_menu, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
-                binding.linkingSubjectText.setText(menuItem.getTitle());
-                return true;
-            });
-            popupMenu.show();
+        Components.bindSubjectSelectorToViewModel(this, viewModel, binding.linkingSubjectText);
+
+        viewModel.getMode().observe(getViewLifecycleOwner(), mode -> {
+            switch (mode) {
+                case EDIT: {
+                    binding.linkingAnswerField.setVisibility(View.GONE);
+                    binding.linkingQuestionField.setVisibility(View.VISIBLE);
+                    binding.linkingQuestionInput.setEnabled(true);
+                    break;
+                }
+                case RUNNING: {
+                    binding.linkingAnswerField.setVisibility(View.GONE);
+                    binding.linkingQuestionField.setVisibility(View.VISIBLE);
+                    binding.linkingQuestionInput.setEnabled(false);
+                    break;
+                }
+                case DONE: {
+                    binding.linkingAnswerField.setVisibility(View.VISIBLE);
+                    binding.linkingQuestionField.setVisibility(View.GONE);
+                    break;
+                }
+            }
         });
+
+        viewModel.getResult().observe(getViewLifecycleOwner(), result -> binding.linkingAnswerField.setText(result));
+
 
         return binding.getRoot();
     }

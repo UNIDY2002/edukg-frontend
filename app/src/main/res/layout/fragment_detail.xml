@@ -32,6 +32,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton.Icon"/>
 
         <TextView
+                android:id="@+id/detail_header_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="6dp"

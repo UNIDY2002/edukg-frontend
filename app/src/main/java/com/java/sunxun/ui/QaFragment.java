@@ -8,7 +8,6 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.data.QaViewModel;
 import com.java.sunxun.databinding.FragmentQaBinding;
@@ -25,6 +23,7 @@ import com.java.sunxun.models.Answer;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
+import com.java.sunxun.utils.Components;
 
 import java.util.ArrayList;
 
@@ -42,15 +41,8 @@ public class QaFragment extends Fragment {
 
         binding = FragmentQaBinding.inflate(inflater, container, false);
         binding.qaReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
-        binding.qaSubjectText.setOnClickListener(view -> {
-            PopupMenu popupMenu = new PopupMenu(getContext(), view);
-            popupMenu.getMenuInflater().inflate(R.menu.subject_menu, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
-                binding.qaSubjectText.setText(menuItem.getTitle());
-                return true;
-            });
-            popupMenu.show();
-        });
+
+        Components.bindSubjectSelectorToViewModel(this, viewModel, binding.qaSubjectText);
 
         binding.qaRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.qaRecyclerView.setAdapter(adapter);
@@ -93,7 +85,7 @@ public class QaFragment extends Fragment {
                         );
                     }
                     viewModel.pushToQaList(null, result.getValue());
-                    viewModel.setCurrentFastLink(result.getEntityUri(), result.getEntityName());
+                    viewModel.setCurrentFastLink(subject, result.getEntityUri(), result.getEntityName());
                 }
 
                 @Override
@@ -116,13 +108,19 @@ public class QaFragment extends Fragment {
             if (data == null) {
                 binding.qaFastLink.setVisibility(View.GONE);
             } else {
-                binding.qaFastLink.setText(getString(R.string.qa_fast_link_hint, data.second));
-                binding.qaFastLink.setOnClickListener(view -> Snackbar.make(view, "Entity uri = " + data.first, Snackbar.LENGTH_LONG).show());
+                binding.qaFastLink.setText(getString(R.string.qa_fast_link_hint, data.name));
+                binding.qaFastLink.setOnClickListener(view -> {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("subject", data.subject.ordinal());
+                    bundle.putString("name", data.name);
+                    bundle.putString("uri", data.uri);
+                    NavHostFragment.findNavController(this).navigate(R.id.nav_detail, bundle);
+                });
                 binding.qaFastLink.setVisibility(View.VISIBLE);
             }
         });
 
-        viewModel.pushToQaList(null, getString(R.string.qa_welcome));
+        viewModel.pushToQaListIfEmpty(null, getString(R.string.qa_welcome));
 
         return binding.getRoot();
     }
