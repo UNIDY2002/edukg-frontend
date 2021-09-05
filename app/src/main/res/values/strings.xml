@@ -46,6 +46,7 @@
     <string name="user_test_question">%d. %s</string>
     <string name="user_test_option">%s. %s</string>
     <string name="user_test_share_template">#eduKGInfo#\n我在 eduKGInfo 里刷到了这道题，大家一起来看看吧！\n\n题目：%s\n\n选项：\n%s</string>
+    <string name="detail_share_template">#eduKGInfo#\n实体详情分享模板\n实体名称：%s\n学科：%s\nuri：%s</string>
     <string name="share">分享</string>
     <string name="network_error">网络异常，请稍后重试。</string>
     <string name="customize_subject">自定义要展示的科目</string>
