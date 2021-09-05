@@ -1,5 +1,6 @@
 package com.java.sunxun.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,12 +36,27 @@ public class SearchFragment extends Fragment {
     @Nullable
     FragmentSearchBinding binding;
 
+    private Subject subject = Subject.chinese;
+
     Adapter adapter = new Adapter();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentSearchBinding.inflate(inflater, container, false);
         binding.searchReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        binding.searchSubjectText.setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(getContext(), view);
+            popupMenu.getMenuInflater().inflate(R.menu.subject_menu, popupMenu.getMenu());
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                Context context = getContext();
+                if (context == null) return false;
+                subject = Subject.fromName(context, menuItem.getTitle().toString());
+                binding.searchSubjectText.setText(menuItem.getTitle());
+                return true;
+            });
+            popupMenu.show();
+        });
+        binding.searchSubjectText.setText(subject.toName(getContext()));
         binding.searchSearchInput.requestFocus();
         binding.searchSearchInput.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -50,7 +67,7 @@ public class SearchFragment extends Fragment {
         binding.searchActionIcon.setOnClickListener(v -> {
             Editable editText = binding.searchSearchInput.getText();
             if (editText != null) {
-                PlatformNetwork.searchInstance(Subject.chinese, editText.toString(), new NetworkHandler<ArrayList<SearchResult>>(v) {
+                PlatformNetwork.searchInstance(subject, editText.toString(), new NetworkHandler<ArrayList<SearchResult>>(v) {
                     @Override
                     public void onSuccess(ArrayList<SearchResult> result) {
                         adapter.updateData(result);
@@ -154,21 +171,27 @@ public class SearchFragment extends Fragment {
                 new Timer(true).schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        PlatformNetwork.queryByUri(Subject.chinese, item.getUri(), new NetworkHandler<InfoByUri>(SearchFragment.this) {
+                        PlatformNetwork.queryByUri(subject, item.getUri(), new NetworkHandler<InfoByUri>(SearchFragment.this) {
                             @Override
                             public void onSuccess(InfoByUri result) {
-                                List<String> featureImage = result.getFeature("图片");
-                                if (featureImage != null) {
-                                    data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
-                                    activity.runOnUiThread(() -> notifyItemChanged(position));
-                                    return;
-                                }
+                                try {
+                                    if (item == data.get(position)) {
+                                        List<String> featureImage = result.getFeature("图片");
+                                        if (featureImage != null) {
+                                            data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
+                                            activity.runOnUiThread(() -> notifyItemChanged(position));
+                                            return;
+                                        }
 
-                                List<String> featureContent = result.getFeature("内容");
-                                if (featureContent != null) {
-                                    data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
-                                    activity.runOnUiThread(() -> notifyItemChanged(position));
-                                    return;
+                                        List<String> featureContent = result.getFeature("内容");
+                                        if (featureContent != null) {
+                                            data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                            activity.runOnUiThread(() -> notifyItemChanged(position));
+                                            return;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
 
