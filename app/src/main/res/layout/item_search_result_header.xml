@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/search_base_result_container"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <TextView
+            android:id="@+id/search_result_header_sort_method_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sort_by"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:padding="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <RadioGroup
+            android:id="@+id/search_result_header_sort_method_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/search_result_header_sort_method_text"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:paddingHorizontal="10dp"
+            android:orientation="horizontal">
+
+        <RadioButton
+                android:id="@+id/search_header_sort_length_ascending"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/length_ascending"/>
+
+        <RadioButton
+                android:id="@+id/search_header_sort_length_descending"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/length_descending"/>
+
+        <RadioButton
+                android:id="@+id/search_header_sort_alphabetical_ascending"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/alphabetical_ascending"/>
+
+        <RadioButton
+                android:id="@+id/search_header_sort_alphabetical_descending"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/alphabetical_descending"/>
+    </RadioGroup>
+
+    <TextView
+            android:id="@+id/search_result_header_filter_method_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_by"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:padding="10dp"
+            app:layout_constraintTop_toBottomOf="@+id/search_result_header_sort_method_radio_group"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+            android:id="@+id/search_result_header_filter_category_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:text="@string/all"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:singleLine="true"
+            android:maxWidth="180dp"
+            android:ellipsize="end"
+            app:layout_constraintLeft_toRightOf="@id/search_result_header_filter_method_text"
+            app:layout_constraintTop_toTopOf="@id/search_result_header_filter_method_text"
+            app:layout_constraintBottom_toBottomOf="@id/search_result_header_filter_method_text"
+            app:drawableRightCompat="@drawable/ic_expand_more"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

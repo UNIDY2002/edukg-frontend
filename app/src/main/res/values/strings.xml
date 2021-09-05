@@ -13,6 +13,13 @@
     <string name="search">检索</string>
     <string name="search_fail">检索失败，请稍后重试。</string>
     <string name="search_image">检索图片</string>
+    <string name="sort_by">排序方式</string>
+    <string name="sort_default">默认排序</string>
+    <string name="length_ascending">长度升序</string>
+    <string name="length_descending">长度降序</string>
+    <string name="alphabetical_ascending">A-Z</string>
+    <string name="alphabetical_descending">Z-A</string>
+    <string name="filter_by">按照类别筛选：</string>
     <string name="linking">实体链接</string>
     <string name="qa_hint">请输入您的问题。</string>
     <string name="qa_submit">提问</string>
