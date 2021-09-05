@@ -77,6 +77,13 @@ public class StarFragment extends Fragment {
                         Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
                     }
                 }));
+                holder.getViewById(R.id.star_entity_container).setOnClickListener(view -> {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("subject", 0);
+                    bundle.putString("name", "UNKNOWN");
+                    bundle.putString("uri", data.uri);
+                    NavHostFragment.findNavController(StarFragment.this).navigate(R.id.nav_detail, bundle);
+                });
             }
         };
 
