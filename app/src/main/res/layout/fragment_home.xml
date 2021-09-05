@@ -40,6 +40,7 @@
             app:layout_constraintLeft_toRightOf="@id/home_menu_icon"
             app:layout_constraintRight_toLeftOf="@id/home_history_icon"
             app:layout_constraintTop_toTopOf="parent"
+            android:focusable="false"
             android:hint="@string/search"
             android:textColor="@color/grey"
             android:textSize="17sp" />
