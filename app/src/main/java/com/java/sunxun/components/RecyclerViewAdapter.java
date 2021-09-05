@@ -10,6 +10,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * This adapter supports only one layout at a time.
+ * @param <T> The type of data.
+ */
 public abstract class RecyclerViewAdapter<T> extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
     protected Context mContext;
     protected int mLayoutId;
@@ -29,8 +33,6 @@ public abstract class RecyclerViewAdapter<T> extends RecyclerView.Adapter<Recycl
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // TODO: What is this?
-        // holder.updatePosition(position);
         this.convert(holder, mData.get(position), position);
     }
 
