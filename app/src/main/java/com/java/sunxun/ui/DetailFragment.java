@@ -44,6 +44,7 @@ public class DetailFragment extends Fragment {
         binding = FragmentDetailBinding.inflate(inflater, container, false);
         binding.detailReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
 
+        // 从 bundle 中获取参数
         Bundle bundle = getArguments();
         Context context = getContext();
         if (bundle != null && context != null) {
@@ -52,6 +53,7 @@ public class DetailFragment extends Fragment {
             String uri = bundle.getString("uri", "");
             binding.detailHeaderText.setText(name);
 
+            // 利用 bundle 中的学科和实体名称进行实体详情的查询
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
                 public void onSuccess(InfoByName result) {
@@ -64,6 +66,7 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            // 向后端询问当前实体是否已收藏，并设置 starStatus 的值
             ApplicationNetwork.isStar(uri, new NetworkHandler<Boolean>(this) {
                 @Override
                 public void onSuccess(Boolean result) {
@@ -76,6 +79,7 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            // 用于展示收藏夹列表的 RecyclerViewAdapter
             RecyclerViewAdapter<String> shareFolderListAdapter = new RecyclerViewAdapter<String>(context, R.layout.item_star_folder, new ArrayList<>()) {
                 @Override
                 public void convert(ViewHolder holder, String data, int position) {
@@ -96,11 +100,14 @@ public class DetailFragment extends Fragment {
                 }
             };
 
+            // 设置分享按钮的点击事件
             binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()), uri)));
 
+            // 设置收藏按钮的点击事件
             binding.detailStarButton.setOnClickListener(v -> {
                 Boolean starStatus = viewModel.getStarStatus().getValue();
                 if (starStatus != null && starStatus) {
+                    // 取消收藏
                     ApplicationNetwork.star(uri, new NetworkHandler<Boolean>(v) {
                         @Override
                         public void onSuccess(Boolean result) {
@@ -113,6 +120,7 @@ public class DetailFragment extends Fragment {
                         }
                     });
                 } else {
+                    // 收藏
                     binding.detailShadow.setVisibility(View.VISIBLE);
                     binding.detailSharePopupContainer.setVisibility(View.VISIBLE);
                     ArrayList<String> fakeFolderList = new ArrayList<>();
@@ -121,19 +129,22 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            // 点击 detailShadow 隐藏收藏遮罩
             binding.detailShadow.setOnClickListener(v -> {
                 binding.detailShadow.setVisibility(View.GONE);
                 binding.detailSharePopupContainer.setVisibility(View.GONE);
             });
 
+            // 阻拦按到弹出框上的点击事件
             binding.detailSharePopupContainer.setOnClickListener(v -> {
             });
 
+            // 设置收藏文件夹的 RecyclerView
             binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-
             binding.detailSharePopupRecyclerView.setAdapter(shareFolderListAdapter);
         }
 
+        // 监听 starStatus 的值，设置标题栏中五角形的图标
         viewModel.getStarStatus().observe(getViewLifecycleOwner(), starStatus -> {
             if (starStatus != null) {
                 binding.detailStarButton.setVisibility(View.VISIBLE);
