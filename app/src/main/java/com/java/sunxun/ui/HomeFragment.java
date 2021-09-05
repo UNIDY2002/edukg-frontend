@@ -59,6 +59,10 @@ public class HomeFragment extends Fragment {
     // This lock prevents updating entity list when params are being reset
     private boolean requestLock = false;
 
+    public HomeFragment() {
+        for (int i = 0; i < subjectNum; ++i) isSubjectChecked[i] = true;
+    }
+
     /**
      * This function will refresh entity list & update UI according to data from net.
      * @param isRefresh When true, it means refreshing. When false, it means loading more.
@@ -92,6 +96,26 @@ public class HomeFragment extends Fragment {
             @Override
             public void onError(Exception e) { e.printStackTrace(); }
         });
+    }
+
+    /**
+     * This function will reset the tabs according to 'isSubjectChecked'.
+     */
+    private void updateSubjectTab() {
+        binding.subjectTab.removeAllTabs();
+        for (int i = 0; i < subjectNum; ++i) {
+            if (isSubjectChecked[i])
+                binding.subjectTab.addTab(binding.subjectTab.newTab()
+                        .setText((Subject.values()[i]).toName(HomeFragment.this.getActivity())));
+        }
+    }
+
+    /**
+     * This function will reset the checkboxes according to 'isSubjectChecked'.
+     */
+    private void updateCheckboxes() {
+        for (int i = 0; i < subjectNum; ++i)
+            ((MaterialCheckBox) binding.checkboxGrid.getChildAt(i)).setChecked(isSubjectChecked[i]);
     }
 
     @Override
@@ -139,9 +163,6 @@ public class HomeFragment extends Fragment {
             // Resolve errors in lambda
             final int iCopy = i;
 
-            // Initialize tab-related array
-            this.isSubjectChecked[i] = true;
-
             ((MaterialCheckBox) binding.checkboxGrid.getChildAt(i)).setOnCheckedChangeListener((buttonView, isChecked) -> isSubjectChecked[iCopy] = isChecked);
             binding.pageSizeInput.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -177,13 +198,7 @@ public class HomeFragment extends Fragment {
                 requestLock = false;
                 return;
             }
-
-            binding.subjectTab.removeAllTabs();
-            for (int i = 0; i < subjectNum; ++i) {
-                if (isSubjectChecked[i])
-                    binding.subjectTab.addTab(binding.subjectTab.newTab()
-                            .setText((Subject.values()[i]).toName(HomeFragment.this.getActivity())));
-            }
+            updateSubjectTab();
 
             // When user input nothing, we ignore it
             if (rawInput.length() > 0) {
@@ -210,7 +225,10 @@ public class HomeFragment extends Fragment {
             updateEntityList(true);
         });
 
+        // When switching back from other pages, resume the UI
         updateEntityList(true);
+        updateSubjectTab();
+        updateCheckboxes();
 
         return binding.getRoot();
     }
