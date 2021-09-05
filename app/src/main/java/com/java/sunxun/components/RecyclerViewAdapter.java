@@ -31,7 +31,7 @@ public abstract class RecyclerViewAdapter<T> extends RecyclerView.Adapter<Recycl
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         // TODO: What is this?
         // holder.updatePosition(position);
-        this.convert(holder, mData.get(position));
+        this.convert(holder, mData.get(position), position);
     }
 
     public void updateData(List<T> newData) {
@@ -39,7 +39,7 @@ public abstract class RecyclerViewAdapter<T> extends RecyclerView.Adapter<Recycl
         this.notifyDataSetChanged();
     }
 
-    public abstract void convert(ViewHolder holder, T data);
+    public abstract void convert(ViewHolder holder, T data, int position);
 
     @Override
     public int getItemCount() {

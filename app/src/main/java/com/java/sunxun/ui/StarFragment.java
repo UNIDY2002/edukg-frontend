@@ -1,7 +1,9 @@
 package com.java.sunxun.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -16,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.databinding.FragmentStarBinding;
+import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
@@ -26,6 +29,10 @@ public class StarFragment extends Fragment {
 
     @Nullable
     FragmentStarBinding binding;
+
+    private String folderName = null;
+
+    private Subject subject = null;
 
     private final List<StarItem> starList = new ArrayList<>();
 
@@ -50,20 +57,10 @@ public class StarFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentStarBinding.inflate(inflater, container, false);
-        binding.starReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
-        binding.starSubjectText.setOnClickListener(view -> {
-            PopupMenu popupMenu = new PopupMenu(getContext(), view);
-            popupMenu.getMenuInflater().inflate(R.menu.subject_menu, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
-                binding.starSubjectText.setText(menuItem.getTitle());
-                return true;
-            });
-            popupMenu.show();
-        });
 
         RecyclerViewAdapter<StarItem> adapter = new RecyclerViewAdapter<StarItem>(getContext(), R.layout.item_star_entity, starList) {
             @Override
-            public void convert(ViewHolder holder, StarItem data) {
+            public void convert(ViewHolder holder, StarItem data, int position) {
                 ((TextView) holder.getViewById(R.id.star_entity_name)).setText(data.uri);
                 ((TextView) holder.getViewById(R.id.star_entity_category)).setText(data.uri);
                 ImageView star = holder.getViewById(R.id.star_entity_star);
@@ -71,7 +68,8 @@ public class StarFragment extends Fragment {
                 star.setOnClickListener(view -> ApplicationNetwork.star(data.uri, new NetworkHandler<Boolean>(view) {
                     @Override
                     public void onSuccess(Boolean result) {
-                        star.setImageResource(result ? R.drawable.ic_star : R.drawable.ic_star_border);
+                        data.star = result;
+                        notifyItemChanged(position);
                     }
 
                     @Override
@@ -81,6 +79,38 @@ public class StarFragment extends Fragment {
                 }));
             }
         };
+
+        binding.starReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+        binding.starCategoryText.setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(getContext(), view);
+            Menu menu = popupMenu.getMenu();
+            ArrayList<String> folders = new ArrayList<>();
+            folders.add(getString(R.string.default_folder));
+            folders.forEach(menu::add);
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                binding.starCategoryText.setText(menuItem.getTitle());
+                folderName = menuItem.getTitle().toString();
+                updateStarList(adapter);
+                return true;
+            });
+            popupMenu.show();
+        });
+        if (folderName != null) binding.starCategoryText.setText(folderName);
+
+        binding.starSubjectText.setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(getContext(), view);
+            popupMenu.getMenuInflater().inflate(R.menu.subject_menu_with_all, popupMenu.getMenu());
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                Context context = getContext();
+                if (context == null) return false;
+                subject = Subject.fromName(context, menuItem.getTitle().toString());
+                binding.starSubjectText.setText(menuItem.getTitle());
+                updateStarList(adapter);
+                return true;
+            });
+            popupMenu.show();
+        });
+        if (subject != null) binding.starSubjectText.setText(subject.toName(getContext()));
 
         binding.starListRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.starListRecyclerView.setAdapter(adapter);

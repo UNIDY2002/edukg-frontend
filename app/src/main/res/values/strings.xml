@@ -6,6 +6,7 @@
     <string name="qa">问答</string>
     <string name="detail">详情</string>
     <string name="star">收藏</string>
+    <string name="default_folder">默认收藏夹</string>
     <string name="search">检索</string>
     <string name="linking">实体链接</string>
     <string name="qa_hint">请输入您的问题。</string>
@@ -28,6 +29,7 @@
     <string name="querying">查询中，请稍候……</string>
     <string name="query_done">查询成功。</string>
     <string name="query_error">查询失败。</string>
+    <string name="all">全部</string>
     <string name="chinese">语文</string>
     <string name="english">英语</string>
     <string name="math">数学</string>
