@@ -42,9 +42,9 @@ public class QaViewModel extends ViewModelWithSubject {
         }
     }
 
-    public void setCurrentFastLink(Subject subject, String uri, String name) {
-        if (subject != null && uri != null && !uri.isEmpty() && name != null && !name.isEmpty())
-            currentFastLink.setValue(new QaFastLink(subject, uri, name));
+    public void setCurrentFastLink(Subject subject, String uri, String name, String category) {
+        if (subject != null && uri != null && !uri.isEmpty() && name != null && !name.isEmpty() && category != null && !category.isEmpty())
+            currentFastLink.setValue(new QaFastLink(subject, uri, name, category));
         else
             currentFastLink.setValue(null);
     }
@@ -59,10 +59,14 @@ public class QaViewModel extends ViewModelWithSubject {
         @NonNull
         public String name;
 
-        public QaFastLink(@NonNull Subject subject, @NonNull String uri, @NonNull String name) {
+        @NonNull
+        public String category;
+
+        public QaFastLink(@NonNull Subject subject, @NonNull String uri, @NonNull String name, @NonNull String category) {
             this.subject = subject;
             this.uri = uri;
             this.name = name;
+            this.category = category;
         }
     }
 

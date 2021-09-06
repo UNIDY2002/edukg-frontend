@@ -72,6 +72,7 @@ public class LinkingFragment extends Fragment {
                                         bundle.putInt("subject", subject.ordinal());
                                         bundle.putString("name", linkingResult.getEntity());
                                         bundle.putString("uri", linkingResult.getEntityUri());
+                                        bundle.putString("category", "TODO");
                                         NavHostFragment.findNavController(LinkingFragment.this).navigate(R.id.nav_detail, bundle);
                                     }
                                 },

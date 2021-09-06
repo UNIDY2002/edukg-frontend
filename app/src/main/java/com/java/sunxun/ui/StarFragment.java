@@ -80,8 +80,9 @@ public class StarFragment extends Fragment {
                 holder.getViewById(R.id.star_entity_container).setOnClickListener(view -> {
                     Bundle bundle = new Bundle();
                     bundle.putInt("subject", 0);
-                    bundle.putString("name", "UNKNOWN");
+                    bundle.putString("name", "TODO");
                     bundle.putString("uri", data.uri);
+                    bundle.putString("category", "TODO");
                     NavHostFragment.findNavController(StarFragment.this).navigate(R.id.nav_detail, bundle);
                 });
             }

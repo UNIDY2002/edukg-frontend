@@ -28,15 +28,13 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 使用 Bundle 传參，导航方式形如 NavController.navigate(R.id.nav_detail, bundle);
  * <p>
- * bundle 中要求有一个整数项 subject（使用序号表示）以及两个字符串项 name 和 uri。
+ * bundle 中要求有一个整数项 subject（使用序号表示）以及三个字符串项 name、category 和 uri。
  */
 public class DetailFragment extends Fragment {
 
@@ -59,6 +57,7 @@ public class DetailFragment extends Fragment {
             Subject subject = Subject.values()[bundle.getInt("subject", 0)];
             String name = bundle.getString("name", "");
             String uri = bundle.getString("uri", "");
+            String category = bundle.getString("category", "");
             binding.detailHeaderText.setText(name);
 
             // 向后端询问当前实体是否已收藏，并设置 starStatus 的值
@@ -71,6 +70,19 @@ public class DetailFragment extends Fragment {
                 @Override
                 public void onError(Exception e) {
                     e.printStackTrace();
+                }
+            });
+
+            // 向后端添加访问历史记录
+            ApplicationNetwork.addHistory(subject, uri, name, category, new NetworkHandler<Boolean>(this) {
+                @Override
+                public void onSuccess(Boolean result) {
+
+                }
+
+                @Override
+                public void onError(Exception e) {
+
                 }
             });
 

@@ -85,7 +85,7 @@ public class QaFragment extends Fragment {
                         );
                     }
                     viewModel.pushToQaList(null, result.getValue());
-                    viewModel.setCurrentFastLink(subject, result.getEntityUri(), result.getEntityName());
+                    viewModel.setCurrentFastLink(subject, result.getEntityUri(), result.getEntityName(), "TODO");
                 }
 
                 @Override
@@ -114,6 +114,7 @@ public class QaFragment extends Fragment {
                     bundle.putInt("subject", data.subject.ordinal());
                     bundle.putString("name", data.name);
                     bundle.putString("uri", data.uri);
+                    bundle.putString("category", data.category);
                     NavHostFragment.findNavController(this).navigate(R.id.nav_detail, bundle);
                 });
                 binding.qaFastLink.setVisibility(View.VISIBLE);

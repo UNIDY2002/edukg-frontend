@@ -260,6 +260,7 @@ public class SearchFragment extends Fragment {
                     bundle.putInt("subject", 0);
                     bundle.putString("name", item.getLabel());
                     bundle.putString("uri", item.getUri());
+                    bundle.putString("category", item.getCategory());
                     NavHostFragment.findNavController(SearchFragment.this).navigate(R.id.nav_detail, bundle);
                 });
                 holder.baseResultName.setText(item.getLabel());
