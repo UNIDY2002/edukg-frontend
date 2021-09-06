@@ -15,6 +15,7 @@
     <string name="delete">删除</string>
     <string name="dash_template">%s - %s</string>
     <string name="search_image">检索图片</string>
+    <string name="no_search_result">空空如也，换个关键词试试吧！</string>
     <string name="sort_by">排序方式</string>
     <string name="sort_default">默认排序</string>
     <string name="length_ascending">长度升序</string>

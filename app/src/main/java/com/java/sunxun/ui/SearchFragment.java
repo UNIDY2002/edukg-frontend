@@ -104,6 +104,7 @@ public class SearchFragment extends Fragment {
                 searching = true;
                 binding.searchHistoryContainer.setVisibility(View.VISIBLE);
                 binding.searchRecyclerView.setVisibility(View.GONE);
+                binding.searchNoResultText.setVisibility(View.GONE);
             }
         });
         binding.searchSearchInput.setOnEditorActionListener((v, actionId, event) -> {
@@ -129,15 +130,23 @@ public class SearchFragment extends Fragment {
                 }
                 searching = false;
                 binding.searchHistoryContainer.setVisibility(View.GONE);
-                binding.searchRecyclerView.setVisibility(View.VISIBLE);
+                binding.searchLoadingSpinner.setVisibility(View.VISIBLE);
                 PlatformNetwork.searchInstance(subject, editText.toString(), new NetworkHandler<ArrayList<SearchResult>>(v) {
                     @Override
                     public void onSuccess(ArrayList<SearchResult> result) {
-                        binding.searchRecyclerView.setAdapter(adapter = new Adapter(result));
+                        binding.searchLoadingSpinner.setVisibility(View.GONE);
+                        if (result.isEmpty()){
+                            binding.searchRecyclerView.setVisibility(View.GONE);
+                            binding.searchNoResultText.setVisibility(View.VISIBLE);
+                        }else {
+                            binding.searchRecyclerView.setVisibility(View.VISIBLE);
+                            binding.searchRecyclerView.setAdapter(adapter = new Adapter(result));
+                        }
                     }
 
                     @Override
                     public void onError(Exception e) {
+                        binding.searchLoadingSpinner.setVisibility(View.GONE);
                         Snackbar.make(v, R.string.search_fail, Snackbar.LENGTH_SHORT).show();
                     }
                 });
@@ -155,6 +164,7 @@ public class SearchFragment extends Fragment {
             binding.searchSearchInput.requestFocus();
             binding.searchHistoryContainer.setVisibility(View.VISIBLE);
             binding.searchRecyclerView.setVisibility(View.GONE);
+            binding.searchNoResultText.setVisibility(View.GONE);
         } else {
             binding.searchHistoryContainer.setVisibility(View.GONE);
             binding.searchRecyclerView.setVisibility(View.VISIBLE);

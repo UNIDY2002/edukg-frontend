@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/search_result_header_sort_method_text"
             app:layout_constraintLeft_toLeftOf="parent"
-            android:paddingHorizontal="10dp"
+            android:paddingHorizontal="5dp"
             android:orientation="horizontal">
 
         <RadioButton
