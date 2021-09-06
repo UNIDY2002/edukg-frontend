@@ -11,9 +11,12 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentHistoryBinding;
 import com.java.sunxun.models.History;
+import com.java.sunxun.network.ApplicationNetwork;
+import com.java.sunxun.network.NetworkHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +34,17 @@ public class HistoryFragment extends Fragment {
         binding.historyReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
         binding.historyRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.historyRecyclerView.setAdapter(adapter);
-        if (!adapter.loaded) adapter.updateData(new ArrayList<>());
+        if (!adapter.loaded) ApplicationNetwork.getHistoryList(new NetworkHandler<List<History>>(this) {
+            @Override
+            public void onSuccess(List<History> result) {
+                adapter.updateData(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Snackbar.make(binding.historyRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+            }
+        });
         return binding.getRoot();
     }
 
@@ -92,13 +105,8 @@ public class HistoryFragment extends Fragment {
         }
 
         public void updateData(List<History> source) {
-            data.add(null);
-            data.add(new HistoryItem("李白", "今天"));
-            data.add(new HistoryItem("杜甫", "今天"));
-            data.add(null);
-            data.add(new HistoryItem("苏轼", "昨天"));
-            data.add(new HistoryItem("白居易", "昨天"));
-            notifyDataSetChanged();
+            data.clear();
+            source.forEach(item -> data.add(new HistoryItem(item.getName(), item.getTime().toString())));
             loaded = true;
         }
 

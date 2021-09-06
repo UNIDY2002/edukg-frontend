@@ -3,10 +3,12 @@ package com.java.sunxun.network;
 import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.java.sunxun.models.History;
 import com.java.sunxun.models.Subject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ApplicationNetwork {
@@ -123,6 +125,54 @@ public class ApplicationNetwork {
                 ArrayList<String> result = new ArrayList<>();
                 for (int i = 0; i < data.size(); i++) {
                     result.add(data.getString(i));
+                }
+                handler.onSuccess(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void addHistory(Subject subject, String uri, String name, String category, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("id", id);
+        params.put("course", subject.toString());
+        params.put("uri", uri);
+        params.put("label", name);
+        params.put("category", category);
+        BaseNetwork.fetch(DATABASE_URL + "/api/addHistory", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void getHistoryList(NetworkHandler<List<History>> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        BaseNetwork.fetch(DATABASE_URL + "/api/getHistoryList", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                JSONArray data = o.getJSONArray("data");
+                List<History> result = new ArrayList<>();
+                for (int i = 0; i < data.size(); i++) {
+                    JSONObject item = data.getJSONObject(i);
+                    result.add(new History(
+                            Subject.fromString(item.getString("course")),
+                            item.getString("uri"),
+                            item.getString("label"),
+                            item.getString("category"),
+                            item.getLong("timestamp")
+                    ));
                 }
                 handler.onSuccess(result);
             }

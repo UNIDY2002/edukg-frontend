@@ -4,8 +4,15 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 import com.java.sunxun.R;
 
+import java.util.Arrays;
+
 public enum Subject {
     chinese, english, math, physics, chemistry, biology, history, geo, politics;
+
+    @Nullable
+    public static Subject fromString(String s) {
+        return Arrays.stream(Subject.values()).filter(subject -> subject.toString().equals(s)).findFirst().orElse(null);
+    }
 
     @Nullable
     public static Subject fromName(Context context, String name) {
