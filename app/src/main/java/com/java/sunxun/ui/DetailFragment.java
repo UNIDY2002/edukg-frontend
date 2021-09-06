@@ -221,7 +221,6 @@ public class DetailFragment extends Fragment {
                     });
 
                     // 编写实体关系的 UI
-                    Log.d("Entity", "Subject: " + subject + " Name: " + name);
                     BiConsumer<String, View> navToNeighbor = (label, v) -> PlatformNetwork.searchInstance(subject, label, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
                         @Override
                         public void onSuccess(ArrayList<SearchResult> result) {

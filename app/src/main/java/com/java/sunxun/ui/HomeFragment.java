@@ -56,11 +56,33 @@ public class HomeFragment extends Fragment {
 
     final static private int subjectNum = 9;
 
+    private RecyclerViewAdapter<Entity> adapter = null;
+
     // This lock prevents updating entity list when params are being reset
     private boolean requestLock = false;
 
     public HomeFragment() {
         for (int i = 0; i < subjectNum; ++i) isSubjectChecked[i] = true;
+    }
+
+    private RecyclerViewAdapter<Entity> getLatestAdapter() {
+        return new RecyclerViewAdapter<Entity>(
+                HomeFragment.this.getActivity(), R.layout.item_home_entity, baseEntities
+        ) {
+            @Override
+            public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data, int position) {
+                ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
+                ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
+                holder.getViewById(R.id.forward).setOnClickListener(v -> {
+                    Bundle mBundle = new Bundle();
+                    mBundle.putInt("subject", selectedSubject.ordinal());
+                    mBundle.putString("name", data.getLabel());
+                    mBundle.putString("category", data.getCategory());
+                    mBundle.putString("uri", data.getUri());
+                    NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.nav_detail, mBundle);
+                });
+            }
+        };
     }
 
     /**
@@ -88,7 +110,7 @@ public class HomeFragment extends Fragment {
                     Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("id"));
                     baseEntities.add(newEntity);
                 }
-                ((RecyclerViewAdapter<Entity>) binding.entityList.getAdapter()).updateData(baseEntities);
+                binding.entityList.setAdapter(adapter = getLatestAdapter());
                 if (isRefresh) binding.entityListWrapper.finishRefresh();
                 else binding.entityListWrapper.finishLoadMore();
             }
@@ -99,15 +121,46 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * This function will reset the tabs according to 'isSubjectChecked'.
+     * This function is used to reset tabs when **changing settings**.
      */
     private void updateSubjectTab() {
+        requestLock = true;
+
         binding.subjectTab.removeAllTabs();
         for (int i = 0; i < subjectNum; ++i) {
             if (isSubjectChecked[i])
                 binding.subjectTab.addTab(binding.subjectTab.newTab()
-                        .setText((Subject.values()[i]).toName(HomeFragment.this.getActivity())));
+                    .setText(Subject.values()[i].toName(this.getActivity())));
         }
+
+        requestLock = false;
+    }
+
+    /**
+     * This function is used to reset tabs when **switching back from other pages**.
+     * CAUTION: It is important to know that the tab num always starts from 9.
+     */
+    private void resumeSubjectTab() {
+        // This solution is ugly!
+        Subject copy = selectedSubject;
+        requestLock = true;
+
+        // Delete useless tabs
+        for (int i = 0, deleteNum = 0; i < subjectNum; ++i) {
+            if (!isSubjectChecked[i]) {
+                binding.subjectTab.removeTabAt(i - deleteNum);
+                ++deleteNum;
+            }
+        }
+
+        // Set the selected state
+        selectedSubject = copy;
+        for (int i = 0; i < binding.subjectTab.getTabCount(); ++i) {
+            TabLayout.Tab tab = binding.subjectTab.getTabAt(i);
+            if (tab.getText().toString().equals(selectedSubject.toName(this.getActivity()))) tab.select();
+        }
+
+        requestLock = false;
     }
 
     /**
@@ -126,23 +179,7 @@ public class HomeFragment extends Fragment {
         binding.homeHistoryIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_history));
 
         binding.entityList.setLayoutManager(new LinearLayoutManager(HomeFragment.this.getActivity()));
-        binding.entityList.setAdapter(new RecyclerViewAdapter<Entity>(
-                HomeFragment.this.getActivity(), R.layout.item_home_entity, baseEntities
-        ) {
-            @Override
-            public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data, int position) {
-                ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
-                ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
-                holder.getViewById(R.id.forward).setOnClickListener(v -> {
-                    Bundle mBundle = new Bundle();
-                    mBundle.putInt("subject", selectedSubject.ordinal());
-                    mBundle.putString("name", data.getLabel());
-                    mBundle.putString("category", data.getCategory());
-                    mBundle.putString("uri", data.getUri());
-                    NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.nav_detail, mBundle);
-                });
-            }
-        });
+        if (adapter != null) binding.entityList.setAdapter(adapter);
 
         binding.entityListWrapper.setEnableRefresh(true);
         binding.entityListWrapper.setOnRefreshListener(refreshLayout -> updateEntityList(true));
@@ -189,9 +226,6 @@ public class HomeFragment extends Fragment {
 
         binding.settings.setOnClickListener(v -> binding.expandableTabWrapper.toggle());
         binding.confirm.setOnClickListener(v -> {
-            // When modifying params, lock the request
-            requestLock = true;
-
             // Handle exception when the user checked nothing
             boolean isLegalCheck = false;
             for (int i = 0; i < subjectNum; ++i) {
@@ -229,14 +263,17 @@ public class HomeFragment extends Fragment {
 
             // Shrink the drawer & update entity list
             binding.expandableTabWrapper.toggle();
-            requestLock = false;
             updateEntityList(true);
         });
 
-        // When switching back from other pages, resume the UI
-        updateEntityList(true);
-        updateSubjectTab();
-        updateCheckboxes();
+        // Adapter == null means it is initialization
+        // Otherwise it means switching back from other pages
+        if (adapter == null) {
+            updateEntityList(true);
+        } else {
+            resumeSubjectTab();
+            updateCheckboxes();
+        }
 
         return binding.getRoot();
     }
