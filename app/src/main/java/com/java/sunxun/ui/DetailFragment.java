@@ -3,10 +3,12 @@ package com.java.sunxun.ui;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +24,7 @@ import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
 import com.java.sunxun.models.InfoByName;
+import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
@@ -30,6 +33,9 @@ import com.java.sunxun.utils.Share;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 使用 Bundle 传參，导航方式形如 NavController.navigate(R.id.nav_detail, bundle);
@@ -42,8 +48,27 @@ public class DetailFragment extends Fragment {
     FragmentDetailBinding binding;
 
     private DetailViewModel viewModel;
-    private List<Pair<String, String>> shortEntityProperty = new ArrayList<>();
-    private List<Pair<String, String>> longEntityProperty = new ArrayList<>();
+    private final ArrayList<Pair<String, String>> shortEntityProperty = new ArrayList<>();
+    private final ArrayList<Pair<String, String>> longEntityProperty = new ArrayList<>();
+    private ArrayList<Pair<String, InfoByName>> subjectRelationList = new ArrayList<>();
+    private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
+
+    /**
+     * 用于根据给定数据绘制列表的函数
+     * @param data      数据源，类型为 Arraylist
+     * @param layout    所要采取的布局
+     * @param attachTo  所属的 LinearLayout
+     * @param converter 将数据转换到 UI 的转换函数
+     * @param <T>       数据的类型
+     */
+    private <T> void draw(ArrayList<T> data, int layout, LinearLayout attachTo, BiConsumer<T, View> converter) {
+        for (T item: data) {
+            @SuppressLint("InflateParams")
+            View view = LayoutInflater.from(this.getActivity()).inflate(layout, null);
+            converter.accept(item, view);
+            attachTo.addView(view);
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -162,6 +187,8 @@ public class DetailFragment extends Fragment {
             }
 
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
+
+            // TODO: 对于过大的列表要做展开和收起
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
                 public void onSuccess(InfoByName result) {
@@ -173,6 +200,8 @@ public class DetailFragment extends Fragment {
                     }
 
                     ArrayList<Pair<String, String>> entityProperty = result.getPropertyList();
+                    subjectRelationList = result.getSubjectRelationList();
+                    objectRelationList = result.getObjectRelationList();
                     shortEntityProperty.clear();
                     longEntityProperty.clear();
                     for (int i = 0; i < entityProperty.size(); ++i)
@@ -180,22 +209,54 @@ public class DetailFragment extends Fragment {
                                 .add(entityProperty.get(i));
 
                     // 编写属性列表的 UI
-                    for (Pair<String, String> prop: shortEntityProperty) {
-                        @SuppressLint("InflateParams")
-                        View propItemView = LayoutInflater.from(this.activity).inflate(R.layout.item_detail_property, null);
-                        ((TextView) propItemView.findViewById(R.id.property_key)).setText(prop.first);
-                        ((TextView) propItemView.findViewById(R.id.property_val)).setText(prop.second);
-                        binding.propertyList.addView(propItemView);
-                    }
+                    draw(shortEntityProperty, R.layout.item_detail_property, binding.propertyList, (data, view) -> {
+                        ((TextView) view.findViewById(R.id.property_key)).setText(data.first);
+                        ((TextView) view.findViewById(R.id.property_val)).setText(data.second);
+                    });
 
                     // 编写知识卡片的 UI
-                    for (Pair<String, String> props: longEntityProperty) {
-                        @SuppressLint("InflateParams")
-                        View knowledgeCardView = LayoutInflater.from(this.activity).inflate(R.layout.item_detail_long_property, null);
-                        ((TextView) knowledgeCardView.findViewById(R.id.long_property_key)).setText(props.first);
-                        ((TextView) knowledgeCardView.findViewById(R.id.long_property_val)).setText(props.second);
-                        binding.longPropertyList.addView(knowledgeCardView);
-                    }
+                    draw(longEntityProperty, R.layout.item_detail_long_property, binding.longPropertyList, (data, view) -> {
+                        ((TextView) view.findViewById(R.id.long_property_key)).setText(data.first);
+                        ((TextView) view.findViewById(R.id.long_property_val)).setText(data.second);
+                    });
+
+                    // 编写实体关系的 UI
+                    Log.d("Entity", "Subject: " + subject + " Name: " + name);
+                    BiConsumer<String, View> navToNeighbor = (label, v) -> PlatformNetwork.searchInstance(subject, label, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
+                        @Override
+                        public void onSuccess(ArrayList<SearchResult> result) {
+                            if (result.size() == 0) {
+                                Snackbar.make(v, "该实体暂且不支持跳转。", Snackbar.LENGTH_SHORT).show();
+                                return;
+                            }
+                            SearchResult res = result.get(0);
+                            Bundle mBundle = new Bundle();
+                            mBundle.putString("name", res.getLabel());
+                            mBundle.putString("uri", res.getUri());
+                            mBundle.putString("category", res.getCategory());
+                            mBundle.putInt("subject", subject.ordinal());
+                            NavHostFragment.findNavController(DetailFragment.this).navigate(R.id.nav_detail, mBundle);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    draw(objectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
+                        ((TextView) view.findViewById(R.id.relation_head)).setText("【当前实体】");
+                        ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
+                        ((TextView) view.findViewById(R.id.relation_target)).setText(data.second.getLabel());
+                        ((TextView) view.findViewById(R.id.relation_target)).setTextColor(getResources().getColor(R.color.teal_700, activity.getTheme()));
+                        ((TextView) view.findViewById(R.id.relation_target)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+                    });
+                    draw(subjectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
+                        ((TextView) view.findViewById(R.id.relation_target)).setText("【当前实体】");
+                        ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
+                        ((TextView) view.findViewById(R.id.relation_head)).setText(data.second.getLabel());
+                        ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, activity.getTheme()));
+                        ((TextView) view.findViewById(R.id.relation_head)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+                    });
                 }
 
                 @Override

@@ -121,6 +121,28 @@
             </LinearLayout>
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_corner"
+                android:orientation="vertical"
+                android:paddingTop="10sp"
+                android:paddingBottom="10sp"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"
+                android:layout_marginTop="5sp"
+                android:layout_marginBottom="5sp"
+                android:id="@+id/relation_list">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="实体关联"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="8sp"
+                    android:layout_marginTop="8sp" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/long_property_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

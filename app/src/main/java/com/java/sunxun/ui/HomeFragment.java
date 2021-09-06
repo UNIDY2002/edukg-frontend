@@ -137,6 +137,7 @@ public class HomeFragment extends Fragment {
                     Bundle mBundle = new Bundle();
                     mBundle.putInt("subject", selectedSubject.ordinal());
                     mBundle.putString("name", data.getLabel());
+                    mBundle.putString("category", data.getCategory());
                     mBundle.putString("uri", data.getUri());
                     NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.nav_detail, mBundle);
                 });

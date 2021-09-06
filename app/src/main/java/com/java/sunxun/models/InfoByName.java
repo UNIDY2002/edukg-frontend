@@ -33,12 +33,10 @@ public class InfoByName {
         // TODO: Handle long paragraphs
         // TODO: Empty component
 
-        /**
-         * Filter keys in blacklist & remove duplicated properties
+        /* Filter keys in blacklist & remove duplicated properties
          * Handle duplicated keys & Handle empty value
          */
         for (Pair<String, String> kvPair: property) {
-            Log.d("Entity props", "Entity " + label + " has key " + kvPair.first + ": " + kvPair.second);
             if (blackList.contains(kvPair.first) || propertyValues.contains(kvPair.second) || kvPair.second.trim().isEmpty()) continue;
             propertyValues.add(kvPair.second);
             if (tmpProperty.containsKey(kvPair.first)) {
@@ -116,5 +114,17 @@ public class InfoByName {
         } catch (Exception e) {
             return null;
         }
+    }
+    
+    public ArrayList<Pair<String, InfoByName>> getSubjectRelationList() {
+        return subjectRelation;
+    }
+
+    public ArrayList<Pair<String, InfoByName>> getObjectRelationList() {
+        return objectRelation;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

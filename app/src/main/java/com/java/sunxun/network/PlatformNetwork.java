@@ -71,10 +71,10 @@ public class PlatformNetwork {
                     JSONObject relationPair = (JSONObject) relationJSONArray.get(i);
                     if (relationPair.getString("object") == null) {
                         subjectRelation.add(new Pair<>(
-                                relationPair.getString("property"), new InfoByName(relationPair.getString("subject_label"))));
+                                relationPair.getString("predicate_label"), new InfoByName(relationPair.getString("subject_label"))));
                     } else {
                         objectRelation.add(new Pair<>(
-                                relationPair.getString("property"), new InfoByName(relationPair.getString("object_label"))));
+                                relationPair.getString("predicate_label"), new InfoByName(relationPair.getString("object_label"))));
                     }
                 }
 
