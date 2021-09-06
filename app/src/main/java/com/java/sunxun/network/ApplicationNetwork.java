@@ -133,4 +133,22 @@ public class ApplicationNetwork {
             }
         });
     }
+
+    public static void uploadTestResult(String name, boolean isCorrect, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("id", id);
+        params.put("label", name);
+        params.put("correct", isCorrect ? 1 : 0);
+        BaseNetwork.fetch(DATABASE_URL + "/api/addProblem", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
 }

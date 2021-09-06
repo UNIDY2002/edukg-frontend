@@ -25,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
 import com.java.sunxun.models.Problem;
+import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
@@ -42,6 +43,8 @@ public class UserTestProblemsFragment extends Fragment {
 
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
 
+    private String name;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentUserTestProblemsBinding.inflate(inflater, container, false);
@@ -54,31 +57,34 @@ public class UserTestProblemsFragment extends Fragment {
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            PlatformNetwork.relatedProblems(bundle.getString("name", ""), new NetworkHandler<ArrayList<Problem>>(this) {
-                @Override
-                public void onSuccess(ArrayList<Problem> problems) {
-                    if (problems.isEmpty()) {
-                        Snackbar.make(binding.userTestRecyclerView, R.string.no_problems_found, Snackbar.LENGTH_SHORT).show();
+            name = bundle.getString("name");
+            if (name != null) {
+                PlatformNetwork.relatedProblems(name, new NetworkHandler<ArrayList<Problem>>(this) {
+                    @Override
+                    public void onSuccess(ArrayList<Problem> problems) {
+                        if (problems.isEmpty()) {
+                            Snackbar.make(binding.userTestRecyclerView, R.string.no_problems_found, Snackbar.LENGTH_SHORT).show();
+                            binding.userTestRecyclerView.setVisibility(View.GONE);
+                        }
+                        binding.userTestCorrectnessIndicator.setColumnCount(problems.size());
+                        for (int i = 0; i < problems.size(); i++) {
+                            View view = new View(binding.userTestCorrectnessIndicator.getContext());
+                            GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED), GridLayout.spec(GridLayout.UNDEFINED, 1f));
+                            layoutParams.width = 0;
+                            view.setLayoutParams(layoutParams);
+                            binding.userTestCorrectnessIndicator.addView(view);
+                        }
+                        Collections.shuffle(problems);
+                        adapter.setProblems(problems);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Snackbar.make(binding.userTestRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
                         binding.userTestRecyclerView.setVisibility(View.GONE);
                     }
-                    binding.userTestCorrectnessIndicator.setColumnCount(problems.size());
-                    for (int i = 0; i < problems.size(); i++) {
-                        View view = new View(binding.userTestCorrectnessIndicator.getContext());
-                        GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED), GridLayout.spec(GridLayout.UNDEFINED, 1f));
-                        layoutParams.width = 0;
-                        view.setLayoutParams(layoutParams);
-                        binding.userTestCorrectnessIndicator.addView(view);
-                    }
-                    Collections.shuffle(problems);
-                    adapter.setProblems(problems);
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    Snackbar.make(binding.userTestRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
-                    binding.userTestRecyclerView.setVisibility(View.GONE);
-                }
-            });
+                });
+            }
         }
 
         return binding.getRoot();
@@ -196,6 +202,17 @@ public class UserTestProblemsFragment extends Fragment {
                     problem.selectedId = j;
                     notifyItemChanged(position);
                     if (problems.stream().allMatch(p -> p.selectedId != -1)) notifyItemInserted(problems.size());
+                    ApplicationNetwork.uploadTestResult(name, j == problem.answerId, new NetworkHandler<Boolean>(UserTestProblemsFragment.this) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+
+                        }
+                    });
                 });
                 holder.options.addView(view);
             }
