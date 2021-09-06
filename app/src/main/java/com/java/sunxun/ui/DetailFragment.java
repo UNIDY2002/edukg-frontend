@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
+import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
 import com.java.sunxun.models.InfoByName;
@@ -150,10 +151,27 @@ public class DetailFragment extends Fragment {
             binding.detailSharePopupContainer.setOnClickListener(v -> {
             });
 
+            // 从缓存中加载
+            try {
+                InfoByName cache = DetailCacheDB.getInstance().getCache(uri);
+                if (cache != null) {
+                    // TODO: 加载缓存中获得的数据
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
                 public void onSuccess(InfoByName result) {
+                    // 存入缓存
+                    try {
+                        DetailCacheDB.getInstance().addCache(uri, result);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                     ArrayList<Pair<String, String>> entityProperty = result.getPropertyList();
                     shortEntityProperty.clear();
                     longEntityProperty.clear();

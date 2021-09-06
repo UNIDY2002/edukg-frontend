@@ -4,6 +4,10 @@ import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,5 +82,39 @@ public class InfoByName {
 
     public ArrayList<Pair<String, String>> getPropertyList() {
         return property;
+    }
+
+    public String serialize() {
+        JSONObject o = new JSONObject();
+        o.put("label", label);
+        JSONArray p = new JSONArray();
+        property.forEach(item -> {
+            JSONObject q = new JSONObject();
+            q.put("key", item.first);
+            q.put("value", item.second);
+            p.add(q);
+        });
+        o.put("properties", p);
+        return o.toJSONString();
+    }
+
+    @Nullable
+    public static InfoByName deserialize(String s) {
+        try {
+            JSONObject o = JSON.parseObject(s);
+            String label = o.getString("label");
+            ArrayList<Pair<String, String>> properties = new ArrayList<>();
+            JSONArray p = o.getJSONArray("properties");
+            for (int i = 0; i < p.size(); i++) {
+                JSONObject q = p.getJSONObject(i);
+                String key = q.getString("key");
+                String value = q.getString("value");
+                if (key == null || value == null) throw new NullPointerException();
+                properties.add(new Pair<>(key, value));
+            }
+            return new InfoByName(label, properties, new ArrayList<>(), new ArrayList<>());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

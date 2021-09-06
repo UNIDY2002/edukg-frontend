@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
+import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.databinding.FragmentSearchBinding;
 import com.java.sunxun.models.InfoByUri;
@@ -30,6 +31,7 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The ugliest code I've ever written.
@@ -187,11 +189,11 @@ public class SearchFragment extends Fragment {
 
         private final int HEADER = 3;
 
-        private final List<SearchResult> data = new ArrayList<>();
+        private final List<BaseSearchResult> data = new ArrayList<>();
 
         Adapter(List<SearchResult> source) {
             data.add(new HeaderSearchResult());
-            data.addAll(source);
+            data.addAll(source.stream().map(BaseSearchResult::new).collect(Collectors.toList()));
         }
 
         private class BaseViewHolder extends RecyclerView.ViewHolder {
@@ -254,7 +256,7 @@ public class SearchFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull BaseViewHolder holder, int position) {
-            SearchResult item = data.get(position);
+            BaseSearchResult item = data.get(position);
             if (!(holder instanceof HeaderViewHolder)) {
                 holder.baseResultContainer.setOnClickListener(v -> {
                     Bundle bundle = new Bundle();
@@ -262,10 +264,17 @@ public class SearchFragment extends Fragment {
                     bundle.putString("name", item.getLabel());
                     bundle.putString("uri", item.getUri());
                     bundle.putString("category", item.getCategory());
+                    holder.baseResultName.setTextColor(getResources().getColor(R.color.grey, null));
                     NavHostFragment.findNavController(SearchFragment.this).navigate(R.id.nav_detail, bundle);
                 });
                 holder.baseResultName.setText(item.getLabel());
                 holder.baseResultType.setText(item.getCategory());
+                try {
+                    item.inCache = DetailCacheDB.getInstance().hasCache(item.getUri());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                holder.baseResultName.setTextColor(getResources().getColor(item.inCache ? R.color.grey : R.color.black, null));
                 String categorySelected = ((HeaderSearchResult) data.get(0)).categorySelected;
                 if (categorySelected == null || Objects.equals(categorySelected, item.getCategory())) {
                     holder.baseResultContainer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -298,7 +307,7 @@ public class SearchFragment extends Fragment {
                         return;
                     binding.searchRecyclerView.post(() -> {
                         headerSearchResult.selection = checkedId;
-                        List<SearchResult> results = new ArrayList<>(data.subList(1, data.size()));
+                        List<BaseSearchResult> results = new ArrayList<>(data.subList(1, data.size()));
                         if (checkedId == R.id.search_header_sort_length_ascending) {
                             results.sort(Comparator.comparingInt(o -> o.getLabel().length()));
                         } else if (checkedId == R.id.search_header_sort_length_descending) {
@@ -381,7 +390,19 @@ public class SearchFragment extends Fragment {
             }
         }
 
-        private class HeaderSearchResult extends SearchResult {
+        private class BaseSearchResult extends SearchResult {
+            boolean inCache = false;
+
+            public BaseSearchResult(String label, String category, String uri) {
+                super(label, category, uri);
+            }
+
+            public BaseSearchResult(SearchResult searchResult) {
+                super(searchResult.getLabel(), searchResult.getCategory(), searchResult.getUri());
+            }
+        }
+
+        private class HeaderSearchResult extends BaseSearchResult {
             @IdRes
             Integer selection = null;
 
@@ -393,20 +414,20 @@ public class SearchFragment extends Fragment {
             }
         }
 
-        private class SearchResultWithContent extends SearchResult {
+        private class SearchResultWithContent extends BaseSearchResult {
             String content;
 
             public SearchResultWithContent(SearchResult searchResult, String content) {
-                super(searchResult.getLabel(), searchResult.getCategory(), searchResult.getUri());
+                super(searchResult);
                 this.content = content;
             }
         }
 
-        private class SearchResultWithImage extends SearchResult {
+        private class SearchResultWithImage extends BaseSearchResult {
             String imageUrl;
 
             public SearchResultWithImage(SearchResult searchResult, String imageUrl) {
-                super(searchResult.getLabel(), searchResult.getCategory(), searchResult.getUri());
+                super(searchResult);
                 this.imageUrl = imageUrl;
             }
         }

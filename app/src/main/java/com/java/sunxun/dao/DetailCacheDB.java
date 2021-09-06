@@ -5,7 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import androidx.annotation.Nullable;
 import com.java.sunxun.exceptions.UninitializedException;
+import com.java.sunxun.models.InfoByName;
 
 public class DetailCacheDB {
 
@@ -19,7 +21,7 @@ public class DetailCacheDB {
         db = new SQLiteOpenHelper(context, "detailCache.db", null, 1) {
             @Override
             public void onCreate(SQLiteDatabase db) {
-                db.execSQL("create table cache(uri String)");
+                db.execSQL("create table cache(uri String, content String)");
             }
 
             @Override
@@ -38,10 +40,11 @@ public class DetailCacheDB {
         instance = new DetailCacheDB(context);
     }
 
-    public void addCache(String uri) {
+    public void addCache(String uri, InfoByName infoByName) {
         if (!hasCache(uri)) {
             ContentValues content = new ContentValues();
             content.put("uri", uri);
+            content.put("content", infoByName.serialize());
             db.insert(TABLE_NAME, null, content);
         }
     }
@@ -51,6 +54,18 @@ public class DetailCacheDB {
         boolean result = cursor.moveToNext();
         cursor.close();
         return result;
+    }
+
+    @Nullable
+    public InfoByName getCache(String uri) {
+        Cursor cursor = db.query(TABLE_NAME, new String[]{"content"}, "uri = ?", new String[]{uri}, null, null, null, null);
+        if (cursor.moveToNext()) {
+            String content = cursor.getString(0);
+            cursor.close();
+            return InfoByName.deserialize(content);
+        } else {
+            return null;
+        }
     }
 
     public void close() {
