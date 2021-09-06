@@ -25,6 +25,7 @@
             android:background="@color/green"
             android:textColor="@color/white"
             android:padding="5dp"
+            android:textIsSelectable="true"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/qa_item_avatar"/>

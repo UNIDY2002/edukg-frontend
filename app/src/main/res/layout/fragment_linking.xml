@@ -127,5 +127,6 @@
             android:visibility="gone"
             android:textColor="@color/black"
             android:textSize="16sp"
+            android:textIsSelectable="true"
             android:lineSpacingMultiplier="1.2"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
