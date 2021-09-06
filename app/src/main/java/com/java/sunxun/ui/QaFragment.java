@@ -16,16 +16,19 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.data.QaViewModel;
 import com.java.sunxun.databinding.FragmentQaBinding;
 import com.java.sunxun.models.Answer;
+import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class QaFragment extends Fragment {
 
@@ -85,7 +88,7 @@ public class QaFragment extends Fragment {
                         );
                     }
                     viewModel.pushToQaList(null, result.getValue());
-                    viewModel.setCurrentFastLink(subject, result.getEntityUri(), result.getEntityName(), "TODO");
+                    viewModel.setCurrentFastLink(subject, result.getEntityUri(), result.getEntityName());
                 }
 
                 @Override
@@ -109,14 +112,24 @@ public class QaFragment extends Fragment {
                 binding.qaFastLink.setVisibility(View.GONE);
             } else {
                 binding.qaFastLink.setText(getString(R.string.qa_fast_link_hint, data.name));
-                binding.qaFastLink.setOnClickListener(view -> {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("subject", data.subject.ordinal());
-                    bundle.putString("name", data.name);
-                    bundle.putString("uri", data.uri);
-                    bundle.putString("category", data.category);
-                    NavHostFragment.findNavController(this).navigate(R.id.nav_detail, bundle);
-                });
+                binding.qaFastLink.setOnClickListener(view -> PlatformNetwork.searchInstance(data.subject, data.name, new NetworkHandler<ArrayList<SearchResult>>(view) {
+                    @Override
+                    public void onSuccess(ArrayList<SearchResult> result) {
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("subject", data.subject.ordinal());
+                        bundle.putString("name", data.name);
+                        bundle.putString("uri", data.uri);
+                        Optional<SearchResult> target = result.stream().filter(searchResult -> searchResult.getLabel().equals(data.name)).findFirst();
+                        if (!target.isPresent()) throw new NullPointerException();
+                        bundle.putString("category", target.get().getCategory());
+                        NavHostFragment.findNavController(QaFragment.this).navigate(R.id.nav_detail, bundle);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                    }
+                }));
                 binding.qaFastLink.setVisibility(View.VISIBLE);
             }
         });

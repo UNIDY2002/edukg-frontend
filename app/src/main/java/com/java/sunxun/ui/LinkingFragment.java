@@ -20,10 +20,14 @@ import com.java.sunxun.R;
 import com.java.sunxun.data.LinkingViewModel;
 import com.java.sunxun.databinding.FragmentLinkingBinding;
 import com.java.sunxun.models.Linking;
+import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 public class LinkingFragment extends Fragment {
 
@@ -68,12 +72,24 @@ public class LinkingFragment extends Fragment {
                                 new ClickableSpan() {
                                     @Override
                                     public void onClick(@NonNull View widget) {
-                                        Bundle bundle = new Bundle();
-                                        bundle.putInt("subject", subject.ordinal());
-                                        bundle.putString("name", linkingResult.getEntity());
-                                        bundle.putString("uri", linkingResult.getEntityUri());
-                                        bundle.putString("category", "TODO");
-                                        NavHostFragment.findNavController(LinkingFragment.this).navigate(R.id.nav_detail, bundle);
+                                        PlatformNetwork.searchInstance(subject, linkingResult.getEntity(), new NetworkHandler<ArrayList<SearchResult>>(widget) {
+                                            @Override
+                                            public void onSuccess(ArrayList<SearchResult> result) {
+                                                Bundle bundle = new Bundle();
+                                                bundle.putInt("subject", subject.ordinal());
+                                                bundle.putString("name", linkingResult.getEntity());
+                                                bundle.putString("uri", linkingResult.getEntityUri());
+                                                Optional<SearchResult> target = result.stream().filter(searchResult -> searchResult.getLabel().equals(linkingResult.getEntity())).findFirst();
+                                                if (!target.isPresent()) throw new NullPointerException();
+                                                bundle.putString("category", target.get().getCategory());
+                                                NavHostFragment.findNavController(LinkingFragment.this).navigate(R.id.nav_detail, bundle);
+                                            }
+
+                                            @Override
+                                            public void onError(Exception e) {
+                                                Snackbar.make(widget, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                                            }
+                                        });
                                     }
                                 },
                                 linkingResult.getStartIndex(),
