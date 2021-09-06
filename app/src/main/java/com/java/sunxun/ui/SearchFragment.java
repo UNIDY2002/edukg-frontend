@@ -260,7 +260,7 @@ public class SearchFragment extends Fragment {
             if (!(holder instanceof HeaderViewHolder)) {
                 holder.baseResultContainer.setOnClickListener(v -> {
                     Bundle bundle = new Bundle();
-                    bundle.putInt("subject", 0);
+                    bundle.putInt("subject", subject.ordinal());
                     bundle.putString("name", item.getLabel());
                     bundle.putString("uri", item.getUri());
                     bundle.putString("category", item.getCategory());

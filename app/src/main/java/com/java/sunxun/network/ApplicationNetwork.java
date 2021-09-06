@@ -25,7 +25,7 @@ public class ApplicationNetwork {
         params.put("page", "" + page);
         params.put("pageSize", "" + pageSize);
         params.put("seed", "" + seed);
-        BaseNetwork.fetch(BACKEND_URL + "/api/getRandomEntity", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(DATABASE_URL + "/api/getRandomEntity", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess(o.getString("data"));
