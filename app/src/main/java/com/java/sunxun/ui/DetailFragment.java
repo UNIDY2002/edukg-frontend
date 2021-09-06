@@ -93,10 +93,10 @@ public class DetailFragment extends Fragment {
                 public void convert(ViewHolder holder, String data, int position) {
                     TextView textView = holder.getViewById(R.id.star_folder_name_text);
                     textView.setText(data);
-                    textView.setOnClickListener(v -> ApplicationNetwork.star(uri, new NetworkHandler<Boolean>(v) {
+                    textView.setOnClickListener(v -> ApplicationNetwork.star(subject, uri, name, category, new NetworkHandler<Boolean>(v) {
                         @Override
                         public void onSuccess(Boolean result) {
-                            viewModel.setStarStatus(result);
+                            viewModel.setStarStatus(true);
                             binding.detailShadow.callOnClick();
                         }
 
@@ -117,10 +117,10 @@ public class DetailFragment extends Fragment {
                 Boolean starStatus = viewModel.getStarStatus().getValue();
                 if (starStatus != null && starStatus) {
                     // 取消收藏
-                    ApplicationNetwork.star(uri, new NetworkHandler<Boolean>(v) {
+                    ApplicationNetwork.unstar(uri, new NetworkHandler<Boolean>(v) {
                         @Override
                         public void onSuccess(Boolean result) {
-                            viewModel.setStarStatus(result);
+                            viewModel.setStarStatus(false);
                         }
 
                         @Override

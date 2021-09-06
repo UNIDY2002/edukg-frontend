@@ -18,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.databinding.FragmentStarBinding;
+import com.java.sunxun.models.Star;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
@@ -37,11 +38,11 @@ public class StarFragment extends Fragment {
     private final List<StarItem> starList = new ArrayList<>();
 
     private void updateStarList(RecyclerViewAdapter<StarItem> adapter) {
-        ApplicationNetwork.getStarList(new NetworkHandler<ArrayList<String>>(this) {
+        ApplicationNetwork.getStarList(new NetworkHandler<ArrayList<Star>>(this) {
             @Override
-            public void onSuccess(ArrayList<String> result) {
+            public void onSuccess(ArrayList<Star> result) {
                 starList.clear();
-                result.forEach(uri -> starList.add(new StarItem(uri, true)));
+                result.forEach(item -> starList.add(new StarItem(item, true)));
                 adapter.notifyDataSetChanged();
             }
 
@@ -64,19 +65,36 @@ public class StarFragment extends Fragment {
                 ((TextView) holder.getViewById(R.id.star_entity_name)).setText(data.uri);
                 ((TextView) holder.getViewById(R.id.star_entity_category)).setText(data.uri);
                 ImageView star = holder.getViewById(R.id.star_entity_star);
-                star.setImageResource(data.star ? R.drawable.ic_star : R.drawable.ic_star_border);
-                star.setOnClickListener(view -> ApplicationNetwork.star(data.uri, new NetworkHandler<Boolean>(view) {
-                    @Override
-                    public void onSuccess(Boolean result) {
-                        data.star = result;
-                        notifyItemChanged(position);
-                    }
+                star.setImageResource(data.isStar ? R.drawable.ic_star : R.drawable.ic_star_border);
+                star.setOnClickListener(view -> {
+                    if (!data.isStar) {
+                        ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, new NetworkHandler<Boolean>(view) {
+                            @Override
+                            public void onSuccess(Boolean result) {
+                                data.isStar = true;
+                                notifyItemChanged(position);
+                            }
 
-                    @Override
-                    public void onError(Exception e) {
-                        Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
+                            @Override
+                            public void onError(Exception e) {
+                                Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
+                            }
+                        });
+                    } else {
+                        ApplicationNetwork.unstar(data.uri, new NetworkHandler<Boolean>(view) {
+                            @Override
+                            public void onSuccess(Boolean result) {
+                                data.isStar = false;
+                                notifyItemChanged(position);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
+                            }
+                        });
                     }
-                }));
+                });
                 holder.getViewById(R.id.star_entity_container).setOnClickListener(view -> {
                     Bundle bundle = new Bundle();
                     bundle.putInt("subject", 0);
@@ -134,12 +152,18 @@ public class StarFragment extends Fragment {
     }
 
     private static class StarItem {
+        Subject subject;
         String uri;
-        boolean star;
+        String name;
+        String category;
+        boolean isStar;
 
-        StarItem(String uri, boolean star) {
-            this.uri = uri;
-            this.star = star;
+        StarItem(Star star, boolean isStar) {
+            this.subject = star.getSubject();
+            this.uri = star.getUri();
+            this.name = star.getName();
+            this.category = star.getCategory();
+            this.isStar = isStar;
         }
     }
 
