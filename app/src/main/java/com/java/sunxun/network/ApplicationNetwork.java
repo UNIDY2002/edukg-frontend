@@ -1,5 +1,6 @@
 package com.java.sunxun.network;
 
+import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.models.Subject;
@@ -9,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ApplicationNetwork {
-    static String id;
+    @NonNull
+    static String id = "";
 
     private static final String BACKEND_URL = "https://www.unidy.cn/edukg/backend";
     private static final String DATABASE_URL = "https://www.unidy.cn/edukg/database";

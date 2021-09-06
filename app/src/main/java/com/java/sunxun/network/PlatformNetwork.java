@@ -13,7 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlatformNetwork {
-    static String id;
+    @NonNull
+    static String id = "";
 
     public static void searchInstance(@NonNull Subject subject, @NonNull String keyword, NetworkHandler<ArrayList<SearchResult>> handler) {
         Map<String, String> params = new HashMap<>();
