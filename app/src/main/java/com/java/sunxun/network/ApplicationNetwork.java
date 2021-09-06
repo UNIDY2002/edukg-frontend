@@ -134,7 +134,7 @@ public class ApplicationNetwork {
                     result.add(new Star(
                             Subject.fromString(item.getString("course")),
                             item.getString("uri"),
-                            item.getString("name"),
+                            item.getString("label"),
                             item.getString("category")
                     ));
                 }

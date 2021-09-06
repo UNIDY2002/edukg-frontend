@@ -42,7 +42,11 @@ public class StarFragment extends Fragment {
             @Override
             public void onSuccess(ArrayList<Star> result) {
                 starList.clear();
-                result.forEach(item -> starList.add(new StarItem(item, true)));
+                result.forEach(item -> {
+                    if (item.getSubject() != null && (subject == null || subject.equals(item.getSubject()))) {
+                        starList.add(new StarItem(item, true));
+                    }
+                });
                 adapter.notifyDataSetChanged();
             }
 
@@ -62,8 +66,8 @@ public class StarFragment extends Fragment {
         RecyclerViewAdapter<StarItem> adapter = new RecyclerViewAdapter<StarItem>(getContext(), R.layout.item_star_entity, starList) {
             @Override
             public void convert(ViewHolder holder, StarItem data, int position) {
-                ((TextView) holder.getViewById(R.id.star_entity_name)).setText(data.uri);
-                ((TextView) holder.getViewById(R.id.star_entity_category)).setText(data.uri);
+                ((TextView) holder.getViewById(R.id.star_entity_name)).setText(getString(R.string.dash_template, data.subject.toName(getContext()), data.name));
+                ((TextView) holder.getViewById(R.id.star_entity_category)).setText(data.category);
                 ImageView star = holder.getViewById(R.id.star_entity_star);
                 star.setImageResource(data.isStar ? R.drawable.ic_star : R.drawable.ic_star_border);
                 star.setOnClickListener(view -> {
