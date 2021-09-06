@@ -185,9 +185,11 @@ public class SearchFragment extends Fragment {
 
         private final int WITH_CONTENT = 1;
 
-        private final int WITH_IMAGE = 2;
+        private final int WITH_CONTENT_LR = 2;
 
-        private final int HEADER = 3;
+        private final int WITH_IMAGE = 3;
+
+        private final int HEADER = 4;
 
         private final List<BaseSearchResult> data = new ArrayList<>();
 
@@ -229,6 +231,15 @@ public class SearchFragment extends Fragment {
             }
         }
 
+        private class ViewHolderWithContentLR extends BaseViewHolder {
+            public TextView content;
+
+            public ViewHolderWithContentLR(@NonNull View view) {
+                super(view);
+                content = view.findViewById(R.id.search_result_content);
+            }
+        }
+
         private class ViewHolderWithImage extends BaseViewHolder {
             public ImageView image;
 
@@ -244,6 +255,8 @@ public class SearchFragment extends Fragment {
             switch (viewType) {
                 case WITH_CONTENT:
                     return new ViewHolderWithContent(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_content, parent, false));
+                case WITH_CONTENT_LR:
+                    return new ViewHolderWithContentLR(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_content_lr, parent, false));
                 case WITH_IMAGE:
                     return new ViewHolderWithImage(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_image, parent, false));
                 case HEADER:
@@ -288,6 +301,10 @@ public class SearchFragment extends Fragment {
             if (holder instanceof ViewHolderWithContent) {
                 SearchResultWithContent itemWithContent = (SearchResultWithContent) data.get(position);
                 ViewHolderWithContent viewHolderWithContent = (ViewHolderWithContent) holder;
+                viewHolderWithContent.content.setText(itemWithContent.content);
+            } else if (holder instanceof ViewHolderWithContentLR) {
+                SearchResultWithContentLR itemWithContent = (SearchResultWithContentLR) data.get(position);
+                ViewHolderWithContentLR viewHolderWithContent = (ViewHolderWithContentLR) holder;
                 viewHolderWithContent.content.setText(itemWithContent.content);
             } else if (holder instanceof ViewHolderWithImage) {
                 SearchResultWithImage itemWithImage = (SearchResultWithImage) data.get(position);
@@ -354,7 +371,11 @@ public class SearchFragment extends Fragment {
 
                                 List<String> featureContent = result.getFeature("内容");
                                 if (featureContent != null) {
-                                    data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                    if (item.getLabel().length() < 5 && item.getCategory().length() < 8 && featureContent.get(0).length() > 40) {
+                                        data.set(position, new SearchResultWithContentLR(item, featureContent.get(0)));
+                                    } else {
+                                        data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                    }
                                     activity.runOnUiThread(() -> notifyItemChanged(position));
                                     return;
                                 }
@@ -381,6 +402,8 @@ public class SearchFragment extends Fragment {
         public int getItemViewType(int position) {
             if (data.get(position) instanceof SearchResultWithContent) {
                 return WITH_CONTENT;
+            } else if (data.get(position) instanceof SearchResultWithContentLR) {
+                return WITH_CONTENT_LR;
             } else if (data.get(position) instanceof SearchResultWithImage) {
                 return WITH_IMAGE;
             } else if (data.get(position) instanceof HeaderSearchResult) {
@@ -418,6 +441,15 @@ public class SearchFragment extends Fragment {
             String content;
 
             public SearchResultWithContent(SearchResult searchResult, String content) {
+                super(searchResult);
+                this.content = content;
+            }
+        }
+
+        private class SearchResultWithContentLR extends BaseSearchResult {
+            String content;
+
+            public SearchResultWithContentLR(SearchResult searchResult, String content) {
                 super(searchResult);
                 this.content = content;
             }
