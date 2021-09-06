@@ -1,6 +1,10 @@
 package com.java.sunxun.network;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
+
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.models.*;
@@ -48,12 +52,37 @@ public class PlatformNetwork {
         BaseNetwork.fetch("http://open.edukg.cn/opedukg/api/typeOpen/open/infoByInstanceName", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
+                o = o.getJSONObject("data");
 
+                // Get property
+                HashMap<String, String> property = new HashMap<>();
+                JSONArray propertyJSONArray = o.getJSONArray("property");
+                for (int i = 0; i < propertyJSONArray.size(); ++i) {
+                    JSONObject propertyPair = (JSONObject) propertyJSONArray.get(i);
+                    property.put(propertyPair.getString("predicateLabel"), propertyPair.getString("object"));
+                }
+
+                // Get relation
+                HashMap<String, InfoByName> subjectRelation = new HashMap<>();
+                HashMap<String, InfoByName> objectRelation = new HashMap<>();
+                JSONArray relationJSONArray = o.getJSONArray("content");
+                for (int i = 0 ; i < relationJSONArray.size(); ++i) {
+                    JSONObject relationPair = (JSONObject) relationJSONArray.get(i);
+                    if (relationPair.getString("object") == null) {
+                        subjectRelation.put(relationPair.getString("property"), new InfoByName(relationPair.getString("subject_label")));
+                    } else {
+                        objectRelation.put(relationPair.getString("property"), new InfoByName(relationPair.getString("object_label")));
+                    }
+                }
+
+                handler.onSuccess(new InfoByName(
+                        o.getString("label"), property, subjectRelation, objectRelation
+                ));
             }
 
             @Override
             public void onError(Exception e) {
-
+                handler.onError(e);
             }
         });
     }

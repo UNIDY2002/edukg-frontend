@@ -2,6 +2,8 @@ package com.java.sunxun.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
@@ -24,7 +28,10 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 使用 Bundle 传參，导航方式形如 NavController.navigate(R.id.nav_detail, bundle);
@@ -37,6 +44,7 @@ public class DetailFragment extends Fragment {
     FragmentDetailBinding binding;
 
     private DetailViewModel viewModel;
+    private List<Pair<String, String>> entityProperty = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,19 +60,6 @@ public class DetailFragment extends Fragment {
             String name = bundle.getString("name", "");
             String uri = bundle.getString("uri", "");
             binding.detailHeaderText.setText(name);
-
-            // 利用 bundle 中的学科和实体名称进行实体详情的查询
-            PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
-                @Override
-                public void onSuccess(InfoByName result) {
-
-                }
-
-                @Override
-                public void onError(Exception e) {
-
-                }
-            });
 
             // 向后端询问当前实体是否已收藏，并设置 starStatus 的值
             ApplicationNetwork.isStar(uri, new NetworkHandler<Boolean>(this) {
@@ -100,8 +95,9 @@ public class DetailFragment extends Fragment {
                 }
             };
 
-            // 设置分享按钮的点击事件
-            binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()), uri)));
+            // 设置收藏文件夹的 RecyclerView
+            binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+            binding.detailSharePopupRecyclerView.setAdapter(shareFolderListAdapter);
 
             // 设置收藏按钮的点击事件
             binding.detailStarButton.setOnClickListener(v -> {
@@ -129,6 +125,9 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            // 设置分享按钮的点击事件
+            binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()), uri)));
+
             // 点击 detailShadow 隐藏收藏遮罩
             binding.detailShadow.setOnClickListener(v -> {
                 binding.detailShadow.setVisibility(View.GONE);
@@ -139,9 +138,29 @@ public class DetailFragment extends Fragment {
             binding.detailSharePopupContainer.setOnClickListener(v -> {
             });
 
-            // 设置收藏文件夹的 RecyclerView
-            binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-            binding.detailSharePopupRecyclerView.setAdapter(shareFolderListAdapter);
+            // 实体属性列表的 RecyclerViewAdapter
+            binding.propertyList.setLayoutManager(new LinearLayoutManager(DetailFragment.this.getActivity()));
+            binding.propertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_property, entityProperty) {
+                @Override
+                public void convert(ViewHolder holder, Pair<String, String> data, int position) {
+                    ((TextView) holder.getViewById(R.id.property_key)).setText(data.first);
+                    ((TextView) holder.getViewById(R.id.property_val)).setText(data.second);
+                }
+            });
+
+            // 利用 bundle 中的学科和实体名称进行实体详情的查询
+            PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
+                @Override
+                public void onSuccess(InfoByName result) {
+                    entityProperty = result.getSortedPropertyList();
+                    ((RecyclerViewAdapter<Pair<String, String>>) binding.propertyList.getAdapter()).updateData(entityProperty);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         // 监听 starStatus 的值，设置标题栏中五角形的图标

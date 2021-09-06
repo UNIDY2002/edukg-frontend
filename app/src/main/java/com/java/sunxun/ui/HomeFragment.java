@@ -1,6 +1,5 @@
 package com.java.sunxun.ui;
 
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -9,13 +8,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -133,6 +133,13 @@ public class HomeFragment extends Fragment {
             public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data, int position) {
                 ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
                 ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
+                holder.getViewById(R.id.forward).setOnClickListener(v -> {
+                    Bundle mBundle = new Bundle();
+                    mBundle.putInt("subject", selectedSubject.ordinal());
+                    mBundle.putString("name", data.getLabel());
+                    mBundle.putString("uri", data.getUri());
+                    NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.nav_detail, mBundle);
+                });
             }
         });
 
