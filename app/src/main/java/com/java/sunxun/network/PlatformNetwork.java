@@ -1,6 +1,7 @@
 package com.java.sunxun.network;
 
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
@@ -55,23 +56,26 @@ public class PlatformNetwork {
                 o = o.getJSONObject("data");
 
                 // Get property
-                HashMap<String, String> property = new HashMap<>();
+                ArrayList<Pair<String, String>> property = new ArrayList<>();
                 JSONArray propertyJSONArray = o.getJSONArray("property");
                 for (int i = 0; i < propertyJSONArray.size(); ++i) {
                     JSONObject propertyPair = (JSONObject) propertyJSONArray.get(i);
-                    property.put(propertyPair.getString("predicateLabel"), propertyPair.getString("object"));
+                    property.add(new Pair<>(
+                            propertyPair.getString("predicateLabel"), propertyPair.getString("object")));
                 }
 
                 // Get relation
-                HashMap<String, InfoByName> subjectRelation = new HashMap<>();
-                HashMap<String, InfoByName> objectRelation = new HashMap<>();
+                ArrayList<Pair<String, InfoByName>> subjectRelation = new ArrayList<>();
+                ArrayList<Pair<String, InfoByName>> objectRelation = new ArrayList<>();
                 JSONArray relationJSONArray = o.getJSONArray("content");
                 for (int i = 0 ; i < relationJSONArray.size(); ++i) {
                     JSONObject relationPair = (JSONObject) relationJSONArray.get(i);
                     if (relationPair.getString("object") == null) {
-                        subjectRelation.put(relationPair.getString("property"), new InfoByName(relationPair.getString("subject_label")));
+                        subjectRelation.add(new Pair<>(
+                                relationPair.getString("property"), new InfoByName(relationPair.getString("subject_label"))));
                     } else {
-                        objectRelation.put(relationPair.getString("property"), new InfoByName(relationPair.getString("object_label")));
+                        objectRelation.add(new Pair<>(
+                                relationPair.getString("property"), new InfoByName(relationPair.getString("object_label"))));
                     }
                 }
 

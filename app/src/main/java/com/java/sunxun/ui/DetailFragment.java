@@ -42,7 +42,8 @@ public class DetailFragment extends Fragment {
     FragmentDetailBinding binding;
 
     private DetailViewModel viewModel;
-    private List<Pair<String, String>> entityProperty = new ArrayList<>();
+    private List<Pair<String, String>> shortEntityProperty = new ArrayList<>();
+    private List<Pair<String, String>> longEntityProperty = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -152,7 +153,7 @@ public class DetailFragment extends Fragment {
 
             // 实体属性列表的 RecyclerViewAdapter
             binding.propertyList.setLayoutManager(new LinearLayoutManager(DetailFragment.this.getActivity()));
-            binding.propertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_property, entityProperty) {
+            binding.propertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_property, shortEntityProperty) {
                 @Override
                 public void convert(ViewHolder holder, Pair<String, String> data, int position) {
                     ((TextView) holder.getViewById(R.id.property_key)).setText(data.first);
@@ -160,12 +161,28 @@ public class DetailFragment extends Fragment {
                 }
             });
 
+            // 实体长属性（知识卡片）的 RecyclerViewAdapter
+            binding.longPropertyList.setLayoutManager(new LinearLayoutManager(DetailFragment.this.getActivity()));
+            binding.longPropertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_long_property, longEntityProperty) {
+                @Override
+                public void convert(ViewHolder holder, Pair<String, String> data, int position) {
+                    ((TextView) holder.getViewById(R.id.long_property_key)).setText(data.first);
+                    ((TextView) holder.getViewById(R.id.long_property_val)).setText(data.second);
+                }
+            });
+
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
                 public void onSuccess(InfoByName result) {
-                    entityProperty = result.getSortedPropertyList();
-                    ((RecyclerViewAdapter<Pair<String, String>>) binding.propertyList.getAdapter()).updateData(entityProperty);
+                    ArrayList<Pair<String, String>> entityProperty = result.getPropertyList();
+                    shortEntityProperty.clear();
+                    longEntityProperty.clear();
+                    for (int i = 0; i < entityProperty.size(); ++i)
+                        (entityProperty.get(i).second.length() > 30 ? longEntityProperty : shortEntityProperty)
+                                .add(entityProperty.get(i));
+                    ((RecyclerViewAdapter<Pair<String, String>>) binding.propertyList.getAdapter()).updateData(shortEntityProperty);
+                    ((RecyclerViewAdapter<Pair<String, String>>) binding.longPropertyList.getAdapter()).updateData(longEntityProperty);
                 }
 
                 @Override

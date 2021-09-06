@@ -16,38 +16,41 @@ public class InfoByName {
     ));
 
     final private String label;
-    final private HashMap<String, InfoByName> subjectRelation;
-    final private HashMap<String, InfoByName> objectRelation;
-    private HashMap<String, String> property;
+    final private ArrayList<Pair<String, InfoByName>> subjectRelation;
+    final private ArrayList<Pair<String, InfoByName>> objectRelation;
+    private ArrayList<Pair<String, String>> property;
 
-    private void filterProperty() {
-        HashMap<String, String> newProperty = new HashMap<>();
+    private void filterAndSortProperty() {
+        ArrayList<Pair<String, String>> newProperty = new ArrayList<>();
         ArrayList<String> propertyValues = new ArrayList<>();
 
         // Filter keys in blacklist & remove duplicated properties
-        for (String key: property.keySet()) {
-            String val = property.get(key);
-            if (blackList.contains(key) || propertyValues.contains(val)) continue;
-            propertyValues.add(val);
-            newProperty.put(key, val);
-            Log.d("Entity property", key + ": " + val);
+        for (Pair<String, String> kvPair: property) {
+            if (blackList.contains(kvPair.first) || propertyValues.contains(kvPair.second)) continue;
+            propertyValues.add(kvPair.second);
+            newProperty.add(kvPair);
         }
         property = newProperty;
+        property.sort((o1, o2) -> o1.second.length() - o2.second.length());
     }
 
     public InfoByName(String label) {
         this.label = label;
-        this.property = new HashMap<>();
-        this.subjectRelation = new HashMap<>();
-        this.objectRelation = new HashMap<>();
+        this.property = new ArrayList<>();
+        this.subjectRelation = new ArrayList<>();
+        this.objectRelation = new ArrayList<>();
     }
 
-    public InfoByName(String label, HashMap<String, String> property, HashMap<String, InfoByName> subjectRelation, HashMap<String, InfoByName> objectRelation) {
+    public InfoByName(
+            String label,
+            ArrayList<Pair<String, String>> property,
+            ArrayList<Pair<String, InfoByName>> subjectRelation,
+            ArrayList<Pair<String, InfoByName>> objectRelation) {
         this.label = label;
         this.property = property;
         this.subjectRelation = subjectRelation;
         this.objectRelation = objectRelation;
-        filterProperty();
+        filterAndSortProperty();
     }
 
     @NonNull
@@ -57,10 +60,7 @@ public class InfoByName {
                 + subjectRelation.size() + " subject relations & " + objectRelation.size() + " object relations.\n";
     }
 
-    public ArrayList<Pair<String, String>> getSortedPropertyList() {
-        ArrayList<Pair<String, String>> sortedProperty = new ArrayList<>();
-        for (String key: property.keySet()) sortedProperty.add(new Pair<>(key, property.get(key)));
-        sortedProperty.sort((o1, o2) -> o1.second.length() - o2.second.length());
-        return sortedProperty;
+    public ArrayList<Pair<String, String>> getPropertyList() {
+        return property;
     }
 }
