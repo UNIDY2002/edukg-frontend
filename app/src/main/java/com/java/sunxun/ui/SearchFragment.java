@@ -23,15 +23,13 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.databinding.FragmentSearchBinding;
+import com.java.sunxun.models.InfoByUri;
 import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * The ugliest code I've ever written.
@@ -46,6 +44,8 @@ public class SearchFragment extends Fragment {
     private boolean searching = true;
 
     Adapter adapter = null;
+
+    Set<String> searchingSet = new HashSet<>();
 
     private void updateHistory(@NonNull LinearLayout container, @NonNull TextView subjectText, @NonNull EditText searchEditText, @NonNull View searchActionButton) {
         try {
@@ -135,10 +135,10 @@ public class SearchFragment extends Fragment {
                     @Override
                     public void onSuccess(ArrayList<SearchResult> result) {
                         binding.searchLoadingSpinner.setVisibility(View.GONE);
-                        if (result.isEmpty()){
+                        if (result.isEmpty()) {
                             binding.searchRecyclerView.setVisibility(View.GONE);
                             binding.searchNoResultText.setVisibility(View.VISIBLE);
-                        }else {
+                        } else {
                             binding.searchRecyclerView.setVisibility(View.VISIBLE);
                             binding.searchRecyclerView.setAdapter(adapter = new Adapter(result));
                         }
@@ -327,42 +327,39 @@ public class SearchFragment extends Fragment {
                     popupMenu.show();
                 });
                 headerViewHolder.filterCategoryText.setText(headerSearchResult.categorySelected == null ? getString(R.string.all) : headerSearchResult.categorySelected);
-            } /* else {
-                new Timer(true).schedule(new TimerTask() {
+            } else {
+                if (searchingSet.contains(item.getUri())) return;
+                searchingSet.add(item.getUri());
+                PlatformNetwork.queryByUri(subject, item.getUri(), new NetworkHandler<InfoByUri>(SearchFragment.this) {
                     @Override
-                    public void run() {
-                        PlatformNetwork.queryByUri(subject, item.getUri(), new NetworkHandler<InfoByUri>(SearchFragment.this) {
-                            @Override
-                            public void onSuccess(InfoByUri result) {
-                                try {
-                                    if (item == data.get(position)) {
-                                        List<String> featureImage = result.getFeature("图片");
-                                        if (featureImage != null) {
-                                            data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
-                                            activity.runOnUiThread(() -> notifyItemChanged(position));
-                                            return;
-                                        }
+                    public void onSuccess(InfoByUri result) {
+                        try {
+                            if (item == data.get(position)) {
+                                List<String> featureImage = result.getFeature("图片");
+                                if (featureImage != null) {
+                                    data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
+                                    activity.runOnUiThread(() -> notifyItemChanged(position));
+                                    return;
+                                }
 
-                                        List<String> featureContent = result.getFeature("内容");
-                                        if (featureContent != null) {
-                                            data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
-                                            activity.runOnUiThread(() -> notifyItemChanged(position));
-                                            return;
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                List<String> featureContent = result.getFeature("内容");
+                                if (featureContent != null) {
+                                    data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                    activity.runOnUiThread(() -> notifyItemChanged(position));
+                                    return;
                                 }
                             }
-
-                            @Override
-                            public void onError(Exception e) {
-
-                            }
-                        });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                }, position * 200L);
-            } */
+
+                    @Override
+                    public void onError(Exception e) {
+
+                    }
+                });
+            }
         }
 
         @Override
