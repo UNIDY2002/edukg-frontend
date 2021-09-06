@@ -5,9 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Pair;
 import com.java.sunxun.exceptions.UninitializedException;
+import com.java.sunxun.models.Subject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SearchHistoryDB {
@@ -22,7 +25,7 @@ public class SearchHistoryDB {
         db = new SQLiteOpenHelper(context, "searchHistory.db", null, 1) {
             @Override
             public void onCreate(SQLiteDatabase db) {
-                db.execSQL("create table history(record String)");
+                db.execSQL("create table history(subject Integer, record String)");
             }
 
             @Override
@@ -41,28 +44,27 @@ public class SearchHistoryDB {
         instance = new SearchHistoryDB(context);
     }
 
-    public void addHistory(String record) {
-        Cursor cursor = db.query(TABLE_NAME, null, null, null, null, null, null, null);
-        boolean exists = cursor.moveToNext();
-        cursor.close();
-        if (exists) removeHistory(record);
+    public void addHistory(Subject subject, String record) {
+        removeHistory(subject, record);
         ContentValues content = new ContentValues();
+        content.put("subject", subject.ordinal());
         content.put("record", record);
         db.insert(TABLE_NAME, null, content);
     }
 
-    public List<String> getHistory() {
+    public List<Pair<Subject, String>> getHistory() {
         Cursor cursor = db.query(TABLE_NAME, null, null, null, null, null, null, null);
-        ArrayList<String> history = new ArrayList<>();
+        ArrayList<Pair<Subject, String>> history = new ArrayList<>();
         while (cursor.moveToNext()) {
-            history.add(cursor.getString(0));
+            history.add(new Pair<>(Subject.values()[cursor.getInt(0)], cursor.getString(1)));
         }
         cursor.close();
+        Collections.reverse(history);
         return history;
     }
 
-    public void removeHistory(String record) {
-        db.delete(TABLE_NAME, "record = ?", new String[]{record});
+    public void removeHistory(Subject subject, String record) {
+        db.delete(TABLE_NAME, "subject = ? and record = ?", new String[]{String.valueOf(subject.ordinal()), record});
     }
 
     public void close() {

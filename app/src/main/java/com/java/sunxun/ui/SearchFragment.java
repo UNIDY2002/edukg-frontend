@@ -1,17 +1,16 @@
 package com.java.sunxun.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ImageView;
-import android.widget.PopupMenu;
-import android.widget.RadioGroup;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
+import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.databinding.FragmentSearchBinding;
 import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
@@ -43,7 +43,44 @@ public class SearchFragment extends Fragment {
 
     private Subject subject = Subject.chinese;
 
+    private boolean searching = true;
+
     Adapter adapter = null;
+
+    private void updateHistory(@NonNull LinearLayout container, @NonNull TextView subjectText, @NonNull EditText searchEditText, @NonNull View searchActionButton) {
+        try {
+            List<Pair<Subject, String>> history = SearchHistoryDB.getInstance().getHistory();
+            container.removeAllViews();
+            history.subList(0, Math.min(history.size(), 6)).forEach(record -> {
+                @SuppressLint("InflateParams")
+                View recordView = getLayoutInflater().inflate(R.layout.item_search_history, null);
+                TextView recordText = recordView.findViewById(R.id.search_history_record_text);
+                View deleteIcon = recordView.findViewById(R.id.search_history_delete_icon);
+                recordText.setText(getString(R.string.dash_template, record.first.toName(getContext()), record.second));
+                recordText.setOnClickListener(v -> {
+                    try {
+                        subject = record.first;
+                        subjectText.setText(record.first.toName(getContext()));
+                        searchEditText.setText(record.second);
+                        searchActionButton.performClick();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                deleteIcon.setOnClickListener(v -> {
+                    try {
+                        SearchHistoryDB.getInstance().removeHistory(record.first, record.second);
+                        updateHistory(container, subjectText, searchEditText, searchActionButton);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                container.addView(recordView);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -62,7 +99,13 @@ public class SearchFragment extends Fragment {
             popupMenu.show();
         });
         binding.searchSubjectText.setText(subject.toName(getContext()));
-        binding.searchSearchInput.requestFocus();
+        binding.searchSearchInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                searching = true;
+                binding.searchHistoryContainer.setVisibility(View.VISIBLE);
+                binding.searchRecyclerView.setVisibility(View.GONE);
+            }
+        });
         binding.searchSearchInput.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 binding.searchActionIcon.performClick();
@@ -72,6 +115,21 @@ public class SearchFragment extends Fragment {
         binding.searchActionIcon.setOnClickListener(v -> {
             Editable editText = binding.searchSearchInput.getText();
             if (editText != null) {
+                binding.searchSearchInput.clearFocus();
+                try {
+                    SearchHistoryDB.getInstance().addHistory(subject, editText.toString());
+                    updateHistory(
+                            binding.searchHistoryContainer,
+                            binding.searchSubjectText,
+                            binding.searchSearchInput,
+                            binding.searchActionIcon
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                searching = false;
+                binding.searchHistoryContainer.setVisibility(View.GONE);
+                binding.searchRecyclerView.setVisibility(View.VISIBLE);
                 PlatformNetwork.searchInstance(subject, editText.toString(), new NetworkHandler<ArrayList<SearchResult>>(v) {
                     @Override
                     public void onSuccess(ArrayList<SearchResult> result) {
@@ -87,6 +145,20 @@ public class SearchFragment extends Fragment {
         });
         binding.searchRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         if (adapter != null) binding.searchRecyclerView.setAdapter(adapter);
+        updateHistory(
+                binding.searchHistoryContainer,
+                binding.searchSubjectText,
+                binding.searchSearchInput,
+                binding.searchActionIcon
+        );
+        if (searching) {
+            binding.searchSearchInput.requestFocus();
+            binding.searchHistoryContainer.setVisibility(View.VISIBLE);
+            binding.searchRecyclerView.setVisibility(View.GONE);
+        } else {
+            binding.searchHistoryContainer.setVisibility(View.GONE);
+            binding.searchRecyclerView.setVisibility(View.VISIBLE);
+        }
         return binding.getRoot();
     }
 
