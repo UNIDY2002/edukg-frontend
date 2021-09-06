@@ -25,6 +25,8 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 public class QaFragment extends Fragment {
@@ -90,7 +92,9 @@ public class QaFragment extends Fragment {
 
                 @Override
                 public void onError(Exception e) {
-                    viewModel.pushToQaList(null, e.toString());
+                    StringWriter stringWriter = new StringWriter();
+                    e.printStackTrace(new PrintWriter(stringWriter));
+                    viewModel.pushToQaList(null, stringWriter.toString());
                 }
             });
         });
