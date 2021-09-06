@@ -12,6 +12,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.java.sunxun.dao.DetailCacheDB;
+import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.databinding.ActivityMainBinding;
 import com.java.sunxun.models.User;
 import com.java.sunxun.network.NetworkHandler;
@@ -85,16 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 初始化单例
         DetailCacheDB.init(this);
-
-        try {
-            DetailCacheDB db = DetailCacheDB.getInstance();
-            String s = "6666";
-            Log.d("DEBUG", String.valueOf(db.hasCache(s)));
-            db.addCache(s);
-            Log.d("DEBUG", String.valueOf(db.hasCache(s)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SearchHistoryDB.init(this);
     }
 
     @Override

@@ -39,9 +39,11 @@ public class DetailCacheDB {
     }
 
     public void addCache(String uri) {
-        ContentValues content = new ContentValues();
-        content.put("uri", uri);
-        db.insert(TABLE_NAME, null, content);
+        if (!hasCache(uri)) {
+            ContentValues content = new ContentValues();
+            content.put("uri", uri);
+            db.insert(TABLE_NAME, null, content);
+        }
     }
 
     public boolean hasCache(String uri) {
