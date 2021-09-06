@@ -21,6 +21,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.DefaultValueFormatter;
+import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
 import com.java.sunxun.models.Problem;
@@ -56,6 +57,10 @@ public class UserTestProblemsFragment extends Fragment {
             PlatformNetwork.relatedProblems(bundle.getString("name", ""), new NetworkHandler<ArrayList<Problem>>(this) {
                 @Override
                 public void onSuccess(ArrayList<Problem> problems) {
+                    if (problems.isEmpty()) {
+                        Snackbar.make(binding.userTestRecyclerView, R.string.no_problems_found, Snackbar.LENGTH_SHORT).show();
+                        binding.userTestRecyclerView.setVisibility(View.GONE);
+                    }
                     binding.userTestCorrectnessIndicator.setColumnCount(problems.size());
                     for (int i = 0; i < problems.size(); i++) {
                         View view = new View(binding.userTestCorrectnessIndicator.getContext());
@@ -70,7 +75,8 @@ public class UserTestProblemsFragment extends Fragment {
 
                 @Override
                 public void onError(Exception e) {
-
+                    Snackbar.make(binding.userTestRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                    binding.userTestRecyclerView.setVisibility(View.GONE);
                 }
             });
         }

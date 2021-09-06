@@ -3,7 +3,6 @@ package com.java.sunxun;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -13,6 +12,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.dao.SearchHistoryDB;
+import com.java.sunxun.dao.TestHistoryDB;
 import com.java.sunxun.databinding.ActivityMainBinding;
 import com.java.sunxun.models.User;
 import com.java.sunxun.network.NetworkHandler;
@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         // 初始化单例
         DetailCacheDB.init(this);
         SearchHistoryDB.init(this);
+        TestHistoryDB.init(this);
     }
 
     @Override
