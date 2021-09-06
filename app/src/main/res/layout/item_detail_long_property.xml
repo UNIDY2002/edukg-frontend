@@ -11,7 +11,8 @@
         android:paddingBottom="10sp"
         android:paddingLeft="10sp"
         android:paddingRight="10sp"
-        android:layout_marginBottom="5sp">
+        android:layout_marginBottom="5sp"
+        android:layout_marginTop="5sp">
         <TextView
             android:id="@+id/long_property_key"
             android:layout_width="match_parent"

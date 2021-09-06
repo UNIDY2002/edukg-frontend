@@ -1,8 +1,8 @@
 package com.java.sunxun.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
@@ -151,26 +150,6 @@ public class DetailFragment extends Fragment {
             binding.detailSharePopupContainer.setOnClickListener(v -> {
             });
 
-            // 实体属性列表的 RecyclerViewAdapter
-            binding.propertyList.setLayoutManager(new LinearLayoutManager(DetailFragment.this.getActivity()));
-            binding.propertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_property, shortEntityProperty) {
-                @Override
-                public void convert(ViewHolder holder, Pair<String, String> data, int position) {
-                    ((TextView) holder.getViewById(R.id.property_key)).setText(data.first);
-                    ((TextView) holder.getViewById(R.id.property_val)).setText(data.second);
-                }
-            });
-
-            // 实体长属性（知识卡片）的 RecyclerViewAdapter
-            binding.longPropertyList.setLayoutManager(new LinearLayoutManager(DetailFragment.this.getActivity()));
-            binding.longPropertyList.setAdapter(new RecyclerViewAdapter<Pair<String, String>>(DetailFragment.this.getActivity(), R.layout.item_detail_long_property, longEntityProperty) {
-                @Override
-                public void convert(ViewHolder holder, Pair<String, String> data, int position) {
-                    ((TextView) holder.getViewById(R.id.long_property_key)).setText(data.first);
-                    ((TextView) holder.getViewById(R.id.long_property_val)).setText(data.second);
-                }
-            });
-
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
@@ -181,8 +160,24 @@ public class DetailFragment extends Fragment {
                     for (int i = 0; i < entityProperty.size(); ++i)
                         (entityProperty.get(i).second.length() > 30 ? longEntityProperty : shortEntityProperty)
                                 .add(entityProperty.get(i));
-                    ((RecyclerViewAdapter<Pair<String, String>>) binding.propertyList.getAdapter()).updateData(shortEntityProperty);
-                    ((RecyclerViewAdapter<Pair<String, String>>) binding.longPropertyList.getAdapter()).updateData(longEntityProperty);
+
+                    // 编写属性列表的 UI
+                    for (Pair<String, String> prop: shortEntityProperty) {
+                        @SuppressLint("InflateParams")
+                        View propItemView = LayoutInflater.from(this.activity).inflate(R.layout.item_detail_property, null);
+                        ((TextView) propItemView.findViewById(R.id.property_key)).setText(prop.first);
+                        ((TextView) propItemView.findViewById(R.id.property_val)).setText(prop.second);
+                        binding.propertyList.addView(propItemView);
+                    }
+
+                    // 编写知识卡片的 UI
+                    for (Pair<String, String> props: longEntityProperty) {
+                        @SuppressLint("InflateParams")
+                        View knowledgeCardView = LayoutInflater.from(this.activity).inflate(R.layout.item_detail_long_property, null);
+                        ((TextView) knowledgeCardView.findViewById(R.id.long_property_key)).setText(props.first);
+                        ((TextView) knowledgeCardView.findViewById(R.id.long_property_val)).setText(props.second);
+                        binding.longPropertyList.addView(knowledgeCardView);
+                    }
                 }
 
                 @Override

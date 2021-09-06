@@ -1,6 +1,5 @@
 package com.java.sunxun.network;
 
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;

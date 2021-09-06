@@ -83,52 +83,51 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.flexbox.FlexboxLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/detail_header"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/light_grey"
-        android:paddingTop="10sp"
-        android:paddingBottom="10sp"
-        android:paddingLeft="10sp"
-        android:paddingRight="10sp"
-        app:flexDirection="column">
-        <LinearLayout
+        android:background="@color/light_grey">
+        <com.google.android.flexbox.FlexboxLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/shape_corner"
-            android:orientation="vertical"
+            android:layout_height="0dp"
             android:paddingTop="10sp"
             android:paddingBottom="10sp"
             android:paddingLeft="10sp"
             android:paddingRight="10sp"
-            android:layout_marginBottom="5sp">
-            <TextView
+            app:flexDirection="column">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="实体属性"
-                android:textSize="18sp"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8sp"
-                android:layout_marginTop="8sp" />
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:id="@+id/property_list"
-                android:layout_weight="1">
-            </androidx.recyclerview.widget.RecyclerView>
-        </LinearLayout>
+                android:background="@drawable/shape_corner"
+                android:orientation="vertical"
+                android:paddingTop="10sp"
+                android:paddingBottom="10sp"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"
+                android:layout_marginBottom="5sp"
+                android:id="@+id/property_list">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="实体属性"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="8sp"
+                    android:layout_marginTop="8sp" />
+            </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/long_property_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5sp">
-        </androidx.recyclerview.widget.RecyclerView>
-    </com.google.android.flexbox.FlexboxLayout>
+            <LinearLayout
+                android:id="@+id/long_property_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
+        </com.google.android.flexbox.FlexboxLayout>
+    </ScrollView>
 
     <View
             android:id="@+id/detail_shadow"
