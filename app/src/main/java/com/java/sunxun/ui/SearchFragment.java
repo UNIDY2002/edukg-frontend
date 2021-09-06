@@ -139,6 +139,7 @@ public class SearchFragment extends Fragment {
                             binding.searchRecyclerView.setVisibility(View.GONE);
                             binding.searchNoResultText.setVisibility(View.VISIBLE);
                         } else {
+                            searchingSet.clear();
                             binding.searchRecyclerView.setVisibility(View.VISIBLE);
                             binding.searchRecyclerView.setAdapter(adapter = new Adapter(result));
                         }
