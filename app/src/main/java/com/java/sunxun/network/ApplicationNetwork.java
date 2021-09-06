@@ -7,10 +7,8 @@ import com.java.sunxun.models.History;
 import com.java.sunxun.models.Star;
 import com.java.sunxun.models.Subject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class ApplicationNetwork {
     @NonNull
@@ -179,15 +177,20 @@ public class ApplicationNetwork {
                 JSONArray data = o.getJSONArray("data");
                 List<History> result = new ArrayList<>();
                 for (int i = 0; i < data.size(); i++) {
-                    JSONObject item = data.getJSONObject(i);
-                    result.add(new History(
-                            Subject.fromString(item.getString("course")),
-                            item.getString("uri"),
-                            item.getString("label"),
-                            item.getString("category"),
-                            item.getLong("timestamp")
-                    ));
+                    try {
+                        JSONObject item = data.getJSONObject(i);
+                        result.add(new History(
+                                Subject.fromString(item.getString("course")),
+                                item.getString("uri"),
+                                item.getString("label"),
+                                item.getString("category"),
+                                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS", Locale.CHINA).parse(item.getString("time"))
+                        ));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+                result.sort((o1, o2) -> -o1.getTime().compareTo(o2.getTime()));
                 handler.onSuccess(result);
             }
 

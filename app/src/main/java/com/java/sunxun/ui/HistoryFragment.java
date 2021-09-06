@@ -15,11 +15,15 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentHistoryBinding;
 import com.java.sunxun.models.History;
+import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class HistoryFragment extends Fragment {
 
@@ -54,16 +58,17 @@ public class HistoryFragment extends Fragment {
         binding = null;
     }
 
-    private static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
+    private class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
         boolean loaded = false;
 
         private final List<HistoryItem> data = new ArrayList<>();
 
-        private static class ViewHolder extends RecyclerView.ViewHolder {
+        private class ViewHolder extends RecyclerView.ViewHolder {
             TextView sectionHeader;
             View container;
             TextView name;
+            TextView category;
             TextView date;
 
             public ViewHolder(@NonNull View view) {
@@ -71,6 +76,7 @@ public class HistoryFragment extends Fragment {
                 sectionHeader = view.findViewById(R.id.history_section_header_text);
                 container = view.findViewById(R.id.history_item_container);
                 name = view.findViewById(R.id.history_item_name);
+                category = view.findViewById(R.id.history_item_category);
                 date = view.findViewById(R.id.history_item_date);
             }
         }
@@ -89,8 +95,17 @@ public class HistoryFragment extends Fragment {
             if (item == null) {
                 holder.sectionHeader.setText(data.get(position + 1).date);
             } else {
-                holder.name.setText(item.name);
+                holder.name.setText(getString(R.string.dash_template, item.subject.toName(getContext()), item.name));
+                holder.category.setText(item.category);
                 holder.date.setText(item.date);
+                holder.container.setOnClickListener(v -> {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("subject", item.subject.ordinal());
+                    bundle.putString("name", item.name);
+                    bundle.putString("uri", item.uri);
+                    bundle.putString("category", item.category);
+                    NavHostFragment.findNavController(HistoryFragment.this).navigate(R.id.nav_detail, bundle);
+                });
             }
         }
 
@@ -106,16 +121,37 @@ public class HistoryFragment extends Fragment {
 
         public void updateData(List<History> source) {
             data.clear();
-            source.forEach(item -> data.add(new HistoryItem(item.getName(), item.getTime().toString())));
+            List<HistoryItem> tempList = source.stream().map(item -> {
+                Calendar calendar = Calendar.getInstance(Locale.CHINA);
+                calendar.setTime(item.getTime());
+                return new HistoryItem(
+                        item.getSubject(),
+                        item.getUri(),
+                        item.getName(),
+                        item.getCategory(),
+                        calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.MONTH) + "-" + calendar.get(Calendar.DATE)
+                );
+            }).filter(historyItem -> historyItem.subject != null).collect(Collectors.toList());
+            for (int i = 0; i < tempList.size(); i++) {
+                if (i == 0 || !tempList.get(i - 1).date.equals(tempList.get(i).date)) data.add(null);
+                data.add(tempList.get(i));
+            }
+            notifyDataSetChanged();
             loaded = true;
         }
 
-        private static class HistoryItem {
+        private class HistoryItem {
+            Subject subject;
+            String uri;
             String name;
+            String category;
             String date;
 
-            HistoryItem(String name, String date) {
+            HistoryItem(Subject subject, String uri, String name, String category, String date) {
+                this.subject = subject;
+                this.uri = uri;
                 this.name = name;
+                this.category = category;
                 this.date = date;
             }
         }

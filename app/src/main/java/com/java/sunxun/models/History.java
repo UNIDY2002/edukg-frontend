@@ -1,13 +1,15 @@
 package com.java.sunxun.models;
 
+import java.util.Date;
+
 public class History {
     final private Subject subject;
     final private String uri;
     final private String name;
     final private String category;
-    final private Long time;
+    final private Date time;
 
-    public History(Subject subject, String uri, String name, String category, Long time) {
+    public History(Subject subject, String uri, String name, String category, Date time) {
         this.subject = subject;
         this.uri = uri;
         this.name = name;
@@ -31,7 +33,7 @@ public class History {
         return category;
     }
 
-    public Long getTime() {
+    public Date getTime() {
         return time;
     }
 }
