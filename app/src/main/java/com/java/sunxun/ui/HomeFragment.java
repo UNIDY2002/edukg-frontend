@@ -107,7 +107,7 @@ public class HomeFragment extends Fragment {
                 JSONArray arr = JSON.parseArray(result);
                 for (int i = 0; i < arr.size(); ++i) {
                     JSONObject o = arr.getJSONObject(i);
-                    Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("id"));
+                    Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("uri"));
                     baseEntities.add(newEntity);
                 }
                 binding.entityList.setAdapter(adapter = getLatestAdapter());

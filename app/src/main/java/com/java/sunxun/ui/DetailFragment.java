@@ -8,7 +8,10 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +27,7 @@ import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
 import com.java.sunxun.models.InfoByName;
+import com.java.sunxun.models.Problem;
 import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
@@ -31,8 +35,12 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,15 +61,24 @@ public class DetailFragment extends Fragment {
     private ArrayList<Pair<String, InfoByName>> subjectRelationList = new ArrayList<>();
     private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
 
+    private int optionChosen = -1;
+
     /**
      * 用于根据给定数据绘制列表的函数
      * @param data      数据源，类型为 Arraylist
      * @param layout    所要采取的布局
      * @param attachTo  所属的 LinearLayout
      * @param converter 将数据转换到 UI 的转换函数
+     * @param emptyTip  数据为空的时候的提示文字，置空则不会在数据为空的时候产生空组件
      * @param <T>       数据的类型
      */
-    private <T> void draw(ArrayList<T> data, int layout, LinearLayout attachTo, BiConsumer<T, View> converter) {
+    private <T> void draw(ArrayList<T> data, int layout, LinearLayout attachTo, BiConsumer<T, View> converter, String emptyTip) {
+        if (data.size() == 0 && !emptyTip.isEmpty()) {
+            TextView caption = new TextView(DetailFragment.this.getActivity());
+            caption.setText(emptyTip);
+            attachTo.addView(caption);
+            return;
+        }
         for (T item: data) {
             @SuppressLint("InflateParams")
             View view = LayoutInflater.from(this.getActivity()).inflate(layout, null);
@@ -187,7 +204,6 @@ public class DetailFragment extends Fragment {
             }
 
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
-
             // TODO: 对于过大的列表要做展开和收起
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
@@ -212,13 +228,13 @@ public class DetailFragment extends Fragment {
                     draw(shortEntityProperty, R.layout.item_detail_property, binding.propertyList, (data, view) -> {
                         ((TextView) view.findViewById(R.id.property_key)).setText(data.first);
                         ((TextView) view.findViewById(R.id.property_val)).setText(data.second);
-                    });
+                    }, "*暂无可使用的属性。");
 
                     // 编写知识卡片的 UI
                     draw(longEntityProperty, R.layout.item_detail_long_property, binding.longPropertyList, (data, view) -> {
                         ((TextView) view.findViewById(R.id.long_property_key)).setText(data.first);
                         ((TextView) view.findViewById(R.id.long_property_val)).setText(data.second);
-                    });
+                    }, "");
 
                     // 编写实体关系的 UI
                     BiConsumer<String, View> navToNeighbor = (label, v) -> PlatformNetwork.searchInstance(subject, label, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
@@ -248,14 +264,58 @@ public class DetailFragment extends Fragment {
                         ((TextView) view.findViewById(R.id.relation_target)).setText(data.second.getLabel());
                         ((TextView) view.findViewById(R.id.relation_target)).setTextColor(getResources().getColor(R.color.teal_700, activity.getTheme()));
                         ((TextView) view.findViewById(R.id.relation_target)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
-                    });
+                    }, "*暂无可用的从实体关系。");
                     draw(subjectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
                         ((TextView) view.findViewById(R.id.relation_target)).setText("【当前实体】");
                         ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
                         ((TextView) view.findViewById(R.id.relation_head)).setText(data.second.getLabel());
                         ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, activity.getTheme()));
                         ((TextView) view.findViewById(R.id.relation_head)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+                    }, "*暂无可用的主实体关系。");
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            // 利用 bundle 中的实体名称进行相关试题的查询
+            PlatformNetwork.relatedProblems(name, new NetworkHandler<ArrayList<Problem>>(this) {
+                @Override
+                public void onSuccess(ArrayList<Problem> result) {
+                    // 提示文字
+                    TextView caption = new TextView(DetailFragment.this.getActivity());
+                    caption.setText(result.size() > 0
+                            ? "*点击选项可作答，此处作答情况不计入作答情况统计。"
+                            : "*暂无相关试题");
+                    binding.problemList.addView(caption);
+                    if (result.size() == 0) return;
+
+                    // 随机渲染一个试题
+                    Problem problem = result.get((new Random().nextInt()) % result.size());
+                    @SuppressLint("InflateParams")
+                    View view = LayoutInflater.from(DetailFragment.this.getActivity()).inflate(R.layout.item_detail_problem, null);
+                    ((TextView) view.findViewById(R.id.problem_text)).setText(problem.getQuestion());
+
+                    Pair<String[], Integer> options = problem.genRandomOptions(26);
+                    for (int i = 0; i < options.first.length; ++i) {
+                        RadioButton btn = new RadioButton(DetailFragment.this.getActivity());
+                        btn.setText(options.first[i]);
+                        btn.setId(i);
+                        ((RadioGroup) view.findViewById(R.id.button_options)).addView(btn);
+                    }
+                    ((RadioGroup) view.findViewById(R.id.button_options)).setOnCheckedChangeListener((group, checkedId) -> {
+                        optionChosen = checkedId;
                     });
+                    view.findViewById(R.id.confirm_button).setOnClickListener(v -> {
+                        Log.d("Entity ans", "" + optionChosen + " " + options.second);
+                        if (optionChosen == -1) Snackbar.make(v, "您没有选择任何选项。", Snackbar.LENGTH_SHORT).show();
+                        else if (optionChosen == options.second) Snackbar.make(v, "您作答正确！", Snackbar.LENGTH_SHORT).show();
+                        else Snackbar.make(v, "您作答错误。", Snackbar.LENGTH_SHORT).show();
+                    });
+
+                    binding.problemList.addView(view);
                 }
 
                 @Override
