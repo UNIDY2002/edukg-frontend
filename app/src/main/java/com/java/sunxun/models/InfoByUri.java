@@ -13,10 +13,13 @@ public class InfoByUri {
 
     private final Map<String, List<String>> features;
 
-    public InfoByUri(String name, String type, Map<String, List<String>> features) {
+    private final String imageUrlIfExists;
+
+    public InfoByUri(String name, String type, Map<String, List<String>> features, @Nullable String imageUrlIfExists) {
         this.name = name;
         this.type = type;
         this.features = features;
+        this.imageUrlIfExists = imageUrlIfExists;
     }
 
     public String getName() {
@@ -30,5 +33,10 @@ public class InfoByUri {
     @Nullable
     public List<String> getFeature(@NonNull String key) {
         return features.get(key);
+    }
+
+    @Nullable
+    public String getImageUrlIfExists() {
+        return imageUrlIfExists;
     }
 }

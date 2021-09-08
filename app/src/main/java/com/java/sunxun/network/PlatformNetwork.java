@@ -58,7 +58,7 @@ public class PlatformNetwork {
                 ArrayList<Pair<String, String>> property = new ArrayList<>();
                 JSONArray propertyJSONArray = o.getJSONArray("property");
                 for (int i = 0; i < propertyJSONArray.size(); ++i) {
-                    JSONObject propertyPair = (JSONObject) propertyJSONArray.get(i);
+                    JSONObject propertyPair = propertyJSONArray.getJSONObject(i);
                     property.add(new Pair<>(
                             propertyPair.getString("predicateLabel"), propertyPair.getString("object")));
                 }
@@ -68,7 +68,7 @@ public class PlatformNetwork {
                 ArrayList<Pair<String, InfoByName>> objectRelation = new ArrayList<>();
                 JSONArray relationJSONArray = o.getJSONArray("content");
                 for (int i = 0; i < relationJSONArray.size(); ++i) {
-                    JSONObject relationPair = (JSONObject) relationJSONArray.get(i);
+                    JSONObject relationPair = relationJSONArray.getJSONObject(i);
                     if (relationPair.getString("object") == null) {
                         subjectRelation.add(new Pair<>(
                                 relationPair.getString("predicate_label"), new InfoByName(relationPair.getString("subject_label"))));
@@ -101,19 +101,24 @@ public class PlatformNetwork {
                 JSONObject data = o.getJSONObject("data");
                 Map<String, List<String>> features = new HashMap<>();
                 JSONArray featureList = data.getJSONArray("entity_features");
+                String imageUrlIfExists = null;
                 for (int i = 0; i < featureList.size(); i++) {
                     JSONObject feature = featureList.getJSONObject(i);
                     String key = feature.getString("feature_key");
                     List<String> value = features.get(key);
+                    String featureValue = feature.getString("feature_value").trim();
                     if (value == null) {
                         value = new ArrayList<>();
-                        value.add(feature.getString("feature_value").trim());
+                        value.add(featureValue);
                         features.put(key, value);
                     } else {
-                        value.add(feature.getString("feature_value").trim());
+                        value.add(featureValue);
+                    }
+                    if (featureValue.startsWith("http://") || featureValue.startsWith("https://")){
+                        imageUrlIfExists = featureValue;
                     }
                 }
-                handler.onSuccess(new InfoByUri(data.getString("entity_name"), data.getString("entity_type"), features));
+                handler.onSuccess(new InfoByUri(data.getString("entity_name"), data.getString("entity_type"), features, imageUrlIfExists));
             }
 
             @Override

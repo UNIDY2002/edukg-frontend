@@ -2,6 +2,7 @@ package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Pair;
@@ -19,6 +20,10 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.dao.DetailCacheDB;
@@ -189,7 +194,11 @@ public class SearchFragment extends Fragment {
 
         private final int WITH_IMAGE = 3;
 
-        private final int HEADER = 4;
+        private final int WITH_WIDE_IMAGE = 4;
+
+        private final int WITH_LARGE_IMAGE = 5;
+
+        private final int HEADER = 6;
 
         private final List<BaseSearchResult> data = new ArrayList<>();
 
@@ -249,6 +258,24 @@ public class SearchFragment extends Fragment {
             }
         }
 
+        private class ViewHolderWithWideImage extends BaseViewHolder {
+            public ImageView image;
+
+            public ViewHolderWithWideImage(@NonNull View view) {
+                super(view);
+                image = view.findViewById(R.id.search_result_image);
+            }
+        }
+
+        private class ViewHolderWithLargeImage extends BaseViewHolder {
+            public ImageView image;
+
+            public ViewHolderWithLargeImage(@NonNull View view) {
+                super(view);
+                image = view.findViewById(R.id.search_result_image);
+            }
+        }
+
         @NonNull
         @Override
         public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -259,6 +286,10 @@ public class SearchFragment extends Fragment {
                     return new ViewHolderWithContentLR(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_content_lr, parent, false));
                 case WITH_IMAGE:
                     return new ViewHolderWithImage(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_image, parent, false));
+                case WITH_WIDE_IMAGE:
+                    return new ViewHolderWithWideImage(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_wide_image, parent, false));
+                case WITH_LARGE_IMAGE:
+                    return new ViewHolderWithLargeImage(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_with_large_image, parent, false));
                 case HEADER:
                     return new HeaderViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result_header, parent, false));
                 default:
@@ -310,6 +341,14 @@ public class SearchFragment extends Fragment {
                 SearchResultWithImage itemWithImage = (SearchResultWithImage) data.get(position);
                 ViewHolderWithImage viewHolderWithImage = (ViewHolderWithImage) holder;
                 Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).into(viewHolderWithImage.image);
+            } else if (holder instanceof ViewHolderWithWideImage) {
+                SearchResultWithWideImage itemWithImage = (SearchResultWithWideImage) data.get(position);
+                ViewHolderWithWideImage viewHolderWithImage = (ViewHolderWithWideImage) holder;
+                Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).into(viewHolderWithImage.image);
+            } else if (holder instanceof ViewHolderWithLargeImage) {
+                SearchResultWithLargeImage itemWithImage = (SearchResultWithLargeImage) data.get(position);
+                ViewHolderWithLargeImage viewHolderWithImage = (ViewHolderWithLargeImage) holder;
+                Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).centerCrop().into(viewHolderWithImage.image);
             } else if (holder instanceof HeaderViewHolder) {
                 HeaderSearchResult headerSearchResult = (HeaderSearchResult) data.get(position);
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
@@ -362,15 +401,32 @@ public class SearchFragment extends Fragment {
                     public void onSuccess(InfoByUri result) {
                         try {
                             if (item == data.get(position)) {
-                                String[] interestedKeysWithImage = new String[]{"图片", "图示"};
+                                if (result.getImageUrlIfExists() != null) {
+                                    String url = result.getImageUrlIfExists();
+                                    Glide.with(SearchFragment.this)
+                                            .load(url)
+                                            .addListener(new RequestListener<Drawable>() {
+                                                @Override
+                                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                                    return false;
+                                                }
 
-                                for (String interestedKey : interestedKeysWithImage) {
-                                    List<String> featureImage = result.getFeature(interestedKey);
-                                    if (featureImage != null) {
-                                        data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
-                                        activity.runOnUiThread(() -> notifyItemChanged(position));
-                                        return;
-                                    }
+                                                @Override
+                                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                                    if (resource != null) {
+                                                        data.set(position, resource.getIntrinsicWidth() < 200
+                                                                ? new SearchResultWithImage(item, url)
+                                                                : resource.getIntrinsicHeight() < 300
+                                                                ? new SearchResultWithWideImage(item, url)
+                                                                : new SearchResultWithLargeImage(item, url)
+                                                        );
+                                                    }
+                                                    return false;
+                                                }
+                                            })
+                                            .preload();
+                                    activity.runOnUiThread(() -> notifyItemChanged(position));
+                                    return;
                                 }
 
                                 String[] interestedKeysWithPerhapsLongValue = new String[]{"内容", "定义", "解释"};
@@ -378,7 +434,7 @@ public class SearchFragment extends Fragment {
                                 for (String interestedKey : interestedKeysWithPerhapsLongValue) {
                                     List<String> featureContent = result.getFeature(interestedKey);
                                     if (featureContent != null) {
-                                        if (featureContent.get(0).length() > 40) {
+                                        if (item.getLabel().length() < 5 && item.getCategory().length() < 8 && featureContent.get(0).length() > 40) {
                                             data.set(position, new SearchResultWithContentLR(item, featureContent.get(0)));
                                         } else {
                                             data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
@@ -425,6 +481,10 @@ public class SearchFragment extends Fragment {
                 return WITH_CONTENT_LR;
             } else if (data.get(position) instanceof SearchResultWithImage) {
                 return WITH_IMAGE;
+            } else if (data.get(position) instanceof SearchResultWithWideImage) {
+                return WITH_WIDE_IMAGE;
+            } else if (data.get(position) instanceof SearchResultWithLargeImage) {
+                return WITH_LARGE_IMAGE;
             } else if (data.get(position) instanceof HeaderSearchResult) {
                 return HEADER;
             } else {
@@ -478,6 +538,24 @@ public class SearchFragment extends Fragment {
             String imageUrl;
 
             public SearchResultWithImage(SearchResult searchResult, String imageUrl) {
+                super(searchResult);
+                this.imageUrl = imageUrl;
+            }
+        }
+
+        private class SearchResultWithWideImage extends BaseSearchResult {
+            String imageUrl;
+
+            public SearchResultWithWideImage(SearchResult searchResult, String imageUrl) {
+                super(searchResult);
+                this.imageUrl = imageUrl;
+            }
+        }
+
+        private class SearchResultWithLargeImage extends BaseSearchResult {
+            String imageUrl;
+
+            public SearchResultWithLargeImage(SearchResult searchResult, String imageUrl) {
                 super(searchResult);
                 this.imageUrl = imageUrl;
             }
