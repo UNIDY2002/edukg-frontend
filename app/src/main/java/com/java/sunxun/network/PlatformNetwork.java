@@ -114,7 +114,7 @@ public class PlatformNetwork {
                     } else {
                         value.add(featureValue);
                     }
-                    if (featureValue.startsWith("http://") || featureValue.startsWith("https://")){
+                    if (featureValue.startsWith("http://") || featureValue.startsWith("https://")) {
                         imageUrlIfExists = featureValue;
                     }
                 }
@@ -138,7 +138,7 @@ public class PlatformNetwork {
             public void onJsonSuccess(JSONObject o) {
                 JSONObject dataItem = o.getJSONArray("data").getJSONObject(0);
                 final String NO_ANSWER = "此问题没有找到答案！";
-                if (NO_ANSWER.equals(dataItem.getString("message"))) {
+                if (NO_ANSWER.equals(dataItem.getString("message")) || dataItem.getString("subject").trim().isEmpty()) {
                     handler.onSuccess(new Answer("", "", "", 100, NO_ANSWER));
                     return;
                 }

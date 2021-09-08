@@ -241,7 +241,7 @@ public class DetailFragment extends Fragment {
                         @Override
                         public void onSuccess(ArrayList<SearchResult> result) {
                             if (result.size() == 0) {
-                                Snackbar.make(v, "该实体暂且不支持跳转。", Snackbar.LENGTH_SHORT).show();
+                                Snackbar.make(v, R.string.do_not_support_linking, Snackbar.LENGTH_SHORT).show();
                                 return;
                             }
                             SearchResult res = result.get(0);

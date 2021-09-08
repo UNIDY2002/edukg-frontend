@@ -93,7 +93,7 @@ public class QaFragment extends Fragment {
 
                 @Override
                 public void onError(Exception e) {
-                    viewModel.pushToQaList(null, e.getMessage());
+                    viewModel.pushToQaList(null, getString(R.string.qa_system_error, e.getMessage()));
                 }
             });
         });

@@ -87,7 +87,7 @@ public class LinkingFragment extends Fragment {
 
                                             @Override
                                             public void onError(Exception e) {
-                                                Snackbar.make(widget, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                                                Snackbar.make(widget, R.string.do_not_support_linking, Snackbar.LENGTH_SHORT).show();
                                             }
                                         });
                                     }

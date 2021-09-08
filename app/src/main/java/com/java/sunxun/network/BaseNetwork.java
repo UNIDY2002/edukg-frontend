@@ -54,7 +54,7 @@ class BaseNetwork {
                         try {
                             handler.onSuccess(result);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            handler.onError(e);
                         }
                     });
                 } else {
