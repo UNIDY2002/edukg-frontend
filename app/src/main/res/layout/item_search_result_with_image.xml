@@ -46,6 +46,8 @@
                     android:id="@+id/search_result_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxLines="4"
+                    android:ellipsize="end"
                     android:textColor="@color/grey"
                     android:gravity="start"
                     android:paddingVertical="1dp"/>
