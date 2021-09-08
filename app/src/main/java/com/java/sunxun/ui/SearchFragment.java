@@ -362,22 +362,41 @@ public class SearchFragment extends Fragment {
                     public void onSuccess(InfoByUri result) {
                         try {
                             if (item == data.get(position)) {
-                                List<String> featureImage = result.getFeature("图片");
-                                if (featureImage != null) {
-                                    data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
-                                    activity.runOnUiThread(() -> notifyItemChanged(position));
-                                    return;
+                                String[] interestedKeysWithImage = new String[]{"图片", "图示"};
+
+                                for (String interestedKey : interestedKeysWithImage) {
+                                    List<String> featureImage = result.getFeature(interestedKey);
+                                    if (featureImage != null) {
+                                        data.set(position, new SearchResultWithImage(item, featureImage.get(0)));
+                                        activity.runOnUiThread(() -> notifyItemChanged(position));
+                                        return;
+                                    }
                                 }
 
-                                List<String> featureContent = result.getFeature("内容");
-                                if (featureContent != null) {
-                                    if (item.getLabel().length() < 5 && item.getCategory().length() < 8 && featureContent.get(0).length() > 40) {
-                                        data.set(position, new SearchResultWithContentLR(item, featureContent.get(0)));
-                                    } else {
-                                        data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                String[] interestedKeysWithPerhapsLongValue = new String[]{"内容", "定义", "解释"};
+
+                                for (String interestedKey : interestedKeysWithPerhapsLongValue) {
+                                    List<String> featureContent = result.getFeature(interestedKey);
+                                    if (featureContent != null) {
+                                        if (featureContent.get(0).length() > 40) {
+                                            data.set(position, new SearchResultWithContentLR(item, featureContent.get(0)));
+                                        } else {
+                                            data.set(position, new SearchResultWithContent(item, featureContent.get(0)));
+                                        }
+                                        activity.runOnUiThread(() -> notifyItemChanged(position));
+                                        return;
                                     }
-                                    activity.runOnUiThread(() -> notifyItemChanged(position));
-                                    return;
+                                }
+
+                                String[] interestedKeys = new String[]{"职业", "国籍", "体裁", "年代", "读音"};
+
+                                for (String interestedKey : interestedKeys) {
+                                    List<String> featureDefinition = result.getFeature(interestedKey);
+                                    if (featureDefinition != null) {
+                                        data.set(position, new SearchResultWithContent(item, featureDefinition.get(0)));
+                                        activity.runOnUiThread(() -> notifyItemChanged(position));
+                                        return;
+                                    }
                                 }
                             }
                         } catch (Exception e) {

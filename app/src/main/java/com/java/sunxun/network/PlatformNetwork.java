@@ -1,18 +1,12 @@
 package com.java.sunxun.network;
 
 import android.util.Pair;
-
 import androidx.annotation.NonNull;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.models.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,10 +23,16 @@ public class PlatformNetwork {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 ArrayList<SearchResult> results = new ArrayList<>();
+                Set<String> uriOccurred = new HashSet<>();
+                uriOccurred.add(null);
                 JSONArray data = o.getJSONArray("data");
                 for (int i = 0; i < data.size(); i++) {
                     JSONObject item = data.getJSONObject(i);
-                    results.add(new SearchResult(item.getString("label"), item.getString("category"), item.getString("uri")));
+                    String uri = item.getString("uri");
+                    if (!uriOccurred.contains(uri)) {
+                        results.add(new SearchResult(item.getString("label"), item.getString("category"), uri));
+                    }
+                    uriOccurred.add(uri);
                 }
                 handler.onSuccess(results);
             }
@@ -67,7 +67,7 @@ public class PlatformNetwork {
                 ArrayList<Pair<String, InfoByName>> subjectRelation = new ArrayList<>();
                 ArrayList<Pair<String, InfoByName>> objectRelation = new ArrayList<>();
                 JSONArray relationJSONArray = o.getJSONArray("content");
-                for (int i = 0 ; i < relationJSONArray.size(); ++i) {
+                for (int i = 0; i < relationJSONArray.size(); ++i) {
                     JSONObject relationPair = (JSONObject) relationJSONArray.get(i);
                     if (relationPair.getString("object") == null) {
                         subjectRelation.add(new Pair<>(
@@ -107,13 +107,13 @@ public class PlatformNetwork {
                     List<String> value = features.get(key);
                     if (value == null) {
                         value = new ArrayList<>();
-                        value.add(feature.getString("feature_value"));
+                        value.add(feature.getString("feature_value").trim());
                         features.put(key, value);
                     } else {
-                        value.add(feature.getString("feature_value"));
+                        value.add(feature.getString("feature_value").trim());
                     }
                 }
-                handler.onSuccess(new InfoByUri(o.getString("entity_name"), o.getString("entity_type"), features));
+                handler.onSuccess(new InfoByUri(data.getString("entity_name"), data.getString("entity_type"), features));
             }
 
             @Override
