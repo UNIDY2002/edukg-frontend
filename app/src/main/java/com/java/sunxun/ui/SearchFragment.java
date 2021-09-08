@@ -251,28 +251,34 @@ public class SearchFragment extends Fragment {
 
         private class ViewHolderWithImage extends BaseViewHolder {
             public ImageView image;
+            public TextView anyText;
 
             public ViewHolderWithImage(@NonNull View view) {
                 super(view);
                 image = view.findViewById(R.id.search_result_image);
+                anyText = view.findViewById(R.id.search_result_text);
             }
         }
 
         private class ViewHolderWithWideImage extends BaseViewHolder {
             public ImageView image;
+            public TextView anyText;
 
             public ViewHolderWithWideImage(@NonNull View view) {
                 super(view);
                 image = view.findViewById(R.id.search_result_image);
+                anyText = view.findViewById(R.id.search_result_text);
             }
         }
 
         private class ViewHolderWithLargeImage extends BaseViewHolder {
             public ImageView image;
+            public TextView anyText;
 
             public ViewHolderWithLargeImage(@NonNull View view) {
                 super(view);
                 image = view.findViewById(R.id.search_result_image);
+                anyText = view.findViewById(R.id.search_result_text);
             }
         }
 
@@ -340,14 +346,20 @@ public class SearchFragment extends Fragment {
             } else if (holder instanceof ViewHolderWithImage) {
                 SearchResultWithImage itemWithImage = (SearchResultWithImage) data.get(position);
                 ViewHolderWithImage viewHolderWithImage = (ViewHolderWithImage) holder;
+                viewHolderWithImage.anyText.setVisibility(itemWithImage.anyText == null ? View.GONE : View.VISIBLE);
+                viewHolderWithImage.anyText.setText(itemWithImage.anyText == null ? "" : itemWithImage.anyText);
                 Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).into(viewHolderWithImage.image);
             } else if (holder instanceof ViewHolderWithWideImage) {
                 SearchResultWithWideImage itemWithImage = (SearchResultWithWideImage) data.get(position);
                 ViewHolderWithWideImage viewHolderWithImage = (ViewHolderWithWideImage) holder;
+                viewHolderWithImage.anyText.setVisibility(itemWithImage.anyText == null ? View.GONE : View.VISIBLE);
+                viewHolderWithImage.anyText.setText(itemWithImage.anyText == null ? "" : itemWithImage.anyText);
                 Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).into(viewHolderWithImage.image);
             } else if (holder instanceof ViewHolderWithLargeImage) {
                 SearchResultWithLargeImage itemWithImage = (SearchResultWithLargeImage) data.get(position);
                 ViewHolderWithLargeImage viewHolderWithImage = (ViewHolderWithLargeImage) holder;
+                viewHolderWithImage.anyText.setVisibility(itemWithImage.anyText == null ? View.GONE : View.VISIBLE);
+                viewHolderWithImage.anyText.setText(itemWithImage.anyText == null ? "" : itemWithImage.anyText);
                 Glide.with(SearchFragment.this).load(itemWithImage.imageUrl).centerCrop().into(viewHolderWithImage.image);
             } else if (holder instanceof HeaderViewHolder) {
                 HeaderSearchResult headerSearchResult = (HeaderSearchResult) data.get(position);
@@ -402,7 +414,18 @@ public class SearchFragment extends Fragment {
                         try {
                             if (item == data.get(position)) {
                                 if (result.getImageUrlIfExists() != null) {
+                                    String[] interestedKeys = new String[]{"内容", "定义", "解释", "国籍", "年代"};
+                                    String anyText = null;
+                                    for (String interestedKey : interestedKeys) {
+                                        List<String> featureDefinition = result.getFeature(interestedKey);
+                                        if (featureDefinition != null) {
+                                            anyText = featureDefinition.get(0);
+                                            if (anyText.startsWith("http://") || anyText.startsWith("https://"))
+                                                anyText = null;
+                                        }
+                                    }
                                     String url = result.getImageUrlIfExists();
+                                    @Nullable String finalAnyText = anyText;
                                     Glide.with(SearchFragment.this)
                                             .load(url)
                                             .addListener(new RequestListener<Drawable>() {
@@ -414,12 +437,16 @@ public class SearchFragment extends Fragment {
                                                 @Override
                                                 public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                                     if (resource != null) {
-                                                        data.set(position, resource.getIntrinsicWidth() < 200
-                                                                ? new SearchResultWithImage(item, url)
-                                                                : resource.getIntrinsicHeight() < 300
-                                                                ? new SearchResultWithWideImage(item, url)
-                                                                : new SearchResultWithLargeImage(item, url)
-                                                        );
+                                                        try {
+                                                            data.set(position, resource.getIntrinsicWidth() < 200
+                                                                    ? new SearchResultWithImage(item, url, finalAnyText)
+                                                                    : resource.getIntrinsicHeight() < 300
+                                                                    ? new SearchResultWithWideImage(item, url, finalAnyText)
+                                                                    : new SearchResultWithLargeImage(item, url, finalAnyText)
+                                                            );
+                                                        } catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
                                                     }
                                                     return false;
                                                 }
@@ -536,28 +563,37 @@ public class SearchFragment extends Fragment {
 
         private class SearchResultWithImage extends BaseSearchResult {
             String imageUrl;
+            @Nullable
+            String anyText;
 
-            public SearchResultWithImage(SearchResult searchResult, String imageUrl) {
+            public SearchResultWithImage(SearchResult searchResult, String imageUrl, @Nullable String anyText) {
                 super(searchResult);
                 this.imageUrl = imageUrl;
+                this.anyText = anyText;
             }
         }
 
         private class SearchResultWithWideImage extends BaseSearchResult {
             String imageUrl;
+            @Nullable
+            String anyText;
 
-            public SearchResultWithWideImage(SearchResult searchResult, String imageUrl) {
+            public SearchResultWithWideImage(SearchResult searchResult, String imageUrl, @Nullable String anyText) {
                 super(searchResult);
                 this.imageUrl = imageUrl;
+                this.anyText = anyText;
             }
         }
 
         private class SearchResultWithLargeImage extends BaseSearchResult {
             String imageUrl;
+            @Nullable
+            String anyText;
 
-            public SearchResultWithLargeImage(SearchResult searchResult, String imageUrl) {
+            public SearchResultWithLargeImage(SearchResult searchResult, String imageUrl, @Nullable String anyText) {
                 super(searchResult);
                 this.imageUrl = imageUrl;
+             this.anyText = anyText;
             }
         }
 
