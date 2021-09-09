@@ -88,16 +88,16 @@ public class DetailFragment extends Fragment {
     }
 
     private void postProblemRes(String label, String uri, boolean isCorrect, View v) {
-        String problemResCaption = isCorrect ? "您作答正确！" : "您作答错误。";
+        Snackbar.make(v, isCorrect ? "您作答正确！" : "您作答错误。", Snackbar.LENGTH_LONG).show();
         ApplicationNetwork.uploadTestResult(label, uri, isCorrect, new NetworkHandler<Boolean>(this) {
             @Override
             public void onSuccess(Boolean result) {
-                Snackbar.make(v, problemResCaption + "答题情况上传成功！", Snackbar.LENGTH_LONG).show();
+
             }
 
             @Override
             public void onError(Exception e) {
-                Snackbar.make(v, problemResCaption + "答题情况上传失败。", Snackbar.LENGTH_LONG).show();
+
             }
         });
     }
