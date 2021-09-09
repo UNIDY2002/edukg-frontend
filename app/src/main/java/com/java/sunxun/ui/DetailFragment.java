@@ -87,6 +87,21 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    private void postProblemRes(String label, String uri, boolean isCorrect, View v) {
+        String problemResCaption = isCorrect ? "您作答正确！" : "您作答错误。";
+        ApplicationNetwork.uploadTestResult(label, uri, isCorrect, new NetworkHandler<Boolean>(this) {
+            @Override
+            public void onSuccess(Boolean result) {
+                Snackbar.make(v, problemResCaption + "答题情况上传成功！", Snackbar.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Snackbar.make(v, problemResCaption + "答题情况上传失败。", Snackbar.LENGTH_LONG).show();
+            }
+        });
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
@@ -197,14 +212,20 @@ public class DetailFragment extends Fragment {
             try {
                 InfoByName cache = DetailCacheDB.getInstance().getCache(uri);
                 if (cache != null) {
-                    // TODO: 加载缓存中获得的数据
+                    ArrayList<Pair<String, String>> entityProperty = cache.getPropertyList();
+                    subjectRelationList = cache.getSubjectRelationList();
+                    objectRelationList = cache.getObjectRelationList();
+                    shortEntityProperty.clear();
+                    longEntityProperty.clear();
+                    for (int i = 0; i < entityProperty.size(); ++i)
+                        (entityProperty.get(i).second.length() > 30 ? longEntityProperty : shortEntityProperty)
+                                .add(entityProperty.get(i));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
             // 利用 bundle 中的学科和实体名称进行实体详情的查询
-            // TODO: 对于过大的列表要做展开和收起
             PlatformNetwork.queryByName(subject, name, new NetworkHandler<InfoByName>(this) {
                 @Override
                 public void onSuccess(InfoByName result) {
@@ -285,12 +306,12 @@ public class DetailFragment extends Fragment {
                 @Override
                 public void onSuccess(ArrayList<Problem> result) {
                     // 提示文字
-                    TextView caption = new TextView(DetailFragment.this.getActivity());
-                    caption.setText(result.size() > 0
-                            ? "*点击选项可作答，此处作答情况不计入作答情况统计。"
-                            : "*暂无相关试题");
-                    binding.problemList.addView(caption);
-                    if (result.size() == 0) return;
+                    if (result.size() == 0) {
+                        TextView caption = new TextView(DetailFragment.this.getActivity());
+                        caption.setText("*暂无相关试题");
+                        binding.problemList.addView(caption);
+                        return;
+                    }
 
                     // 随机渲染一个试题
                     Problem problem = result.get(new Random().nextInt(result.size()));
@@ -309,10 +330,8 @@ public class DetailFragment extends Fragment {
                         optionChosen = checkedId;
                     });
                     view.findViewById(R.id.confirm_button).setOnClickListener(v -> {
-                        Log.d("Entity ans", "" + optionChosen + " " + options.second);
                         if (optionChosen == -1) Snackbar.make(v, "您没有选择任何选项。", Snackbar.LENGTH_SHORT).show();
-                        else if (optionChosen == options.second) Snackbar.make(v, "您作答正确！", Snackbar.LENGTH_SHORT).show();
-                        else Snackbar.make(v, "您作答错误。", Snackbar.LENGTH_SHORT).show();
+                        else postProblemRes(name, uri, optionChosen == options.second, v);
                     });
 
                     binding.problemList.addView(view);

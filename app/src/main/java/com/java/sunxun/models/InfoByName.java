@@ -30,7 +30,6 @@ public class InfoByName {
 
         // TODO: http://kb.cs.tsinghua.edu.cn... is picture
         // TODO: Handle "图片" keys
-        // TODO: Handle long paragraphs
 
         /* Filter keys in blacklist & remove duplicated properties
          * Handle duplicated keys & Handle empty value
