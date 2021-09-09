@@ -1,6 +1,7 @@
 package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -21,6 +22,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.DefaultValueFormatter;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentUserTestProblemsBinding;
@@ -30,10 +32,7 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserTestProblemsFragment extends Fragment {
@@ -45,13 +44,16 @@ public class UserTestProblemsFragment extends Fragment {
 
     private String name;
 
+    private String correctness;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentUserTestProblemsBinding.inflate(inflater, container, false);
         binding.userTestProblemsReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
 
         UserTestAdapter adapter = new UserTestAdapter();
-        binding.userTestRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        binding.userTestRecyclerView.setLayoutManager(layoutManager);
         binding.userTestRecyclerView.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(binding.userTestRecyclerView);
 
@@ -76,6 +78,19 @@ public class UserTestProblemsFragment extends Fragment {
                         }
                         Collections.shuffle(problems);
                         adapter.setProblems(problems);
+                        binding.userTestShareButton.setVisibility(View.VISIBLE);
+                        binding.userTestShareButton.setOnClickListener(v -> {
+                            try {
+                                int currentPos = layoutManager.findFirstVisibleItemPosition();
+                                Context context = getContext();
+                                if (currentPos != RecyclerView.NO_POSITION && context != null) {
+                                    Share.share(context, adapter.getShareText(currentPos));
+                                }
+                            } catch (Exception e) {
+                                Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            }
+                        });
                     }
 
                     @Override
@@ -110,14 +125,16 @@ public class UserTestProblemsFragment extends Fragment {
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView question;
             LinearLayout options;
-            View share;
+            MaterialButton nextProblem;
+            TextView summaryTitle;
             PieChart pieChart;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 question = view.findViewById(R.id.user_test_question);
                 options = view.findViewById(R.id.user_test_options);
-                share = view.findViewById(R.id.user_test_share_button);
+                nextProblem = view.findViewById(R.id.user_test_next_problem_button);
+                summaryTitle = view.findViewById(R.id.user_test_summary_title);
                 pieChart = view.findViewById(R.id.user_test_summary_pie_chart);
             }
         }
@@ -164,18 +181,19 @@ public class UserTestProblemsFragment extends Fragment {
                 dataSet.setValueTextSize(16);
                 PieData pieData = new PieData(dataSet);
                 holder.pieChart.setDrawCenterText(true);
-                holder.pieChart.setCenterTextSize(16);
+                holder.pieChart.setCenterTextSize(20);
                 holder.pieChart.getLegend().setEnabled(false);
-                holder.pieChart.setCenterText(String.format(Locale.getDefault(), "%.2f", correct * 100.0 / (correct + wrong)) + "%");
+                holder.pieChart.setCenterText(correctness = String.format(Locale.getDefault(), "%d", Math.round(correct * 100.0 / (correct + wrong))) + "%");
                 holder.pieChart.setData(pieData);
                 holder.pieChart.getDescription().setEnabled(false);
+                holder.pieChart.animateY(1500);
                 holder.pieChart.setTouchEnabled(false);
+                holder.summaryTitle.setText(getString(R.string.user_test_congratulations, correctness));
                 return;
             }
             UserProblem problem = problems.get(position);
             holder.question.setText(getString(R.string.user_test_question, position + 1, problem.question));
             holder.options.removeAllViews();
-            StringBuilder shareOptions = new StringBuilder();
             for (int i = 0; i < problem.options.length; i++) {
                 String option = problem.options[i];
                 @SuppressLint("InflateParams")
@@ -184,8 +202,6 @@ public class UserTestProblemsFragment extends Fragment {
                 TextView textView = view.findViewById(R.id.user_test_option_text);
                 String optionText = getString(R.string.user_test_option, alphabet[i], option);
                 textView.setText(optionText);
-                shareOptions.append(optionText);
-                shareOptions.append('\n');
                 if (problem.selectedId != -1 && i == problem.answerId)
                     textView.setTextColor(getResources().getColor(R.color.green, null));
                 else if (i == problem.selectedId)
@@ -201,7 +217,7 @@ public class UserTestProblemsFragment extends Fragment {
                     }
                     problem.selectedId = j;
                     notifyItemChanged(position);
-                    if (problems.stream().allMatch(p -> p.selectedId != -1)) notifyItemInserted(problems.size());
+                    notifyItemInserted(position + 1);
                     ApplicationNetwork.uploadTestResult(name, j == problem.answerId, new NetworkHandler<Boolean>(UserTestProblemsFragment.this) {
                         @Override
                         public void onSuccess(Boolean result) {
@@ -216,17 +232,46 @@ public class UserTestProblemsFragment extends Fragment {
                 });
                 holder.options.addView(view);
             }
-            holder.share.setOnClickListener(v -> Share.share(v.getContext(), getString(R.string.user_test_share_template, problem.question, shareOptions)));
+            holder.nextProblem.setVisibility(problem.selectedId == -1 ? View.GONE : View.VISIBLE);
+            holder.nextProblem.setText(position == problems.size() - 1 ? R.string.see_result : R.string.next_problem);
+            holder.nextProblem.setOnClickListener(v -> {
+                if (binding != null) {
+                    RecyclerView.LayoutManager manager = binding.userTestRecyclerView.getLayoutManager();
+                    if (manager != null) {
+                        binding.userTestRecyclerView.smoothScrollToPosition(position + 1);
+                    }
+                }
+            });
         }
 
         @Override
         public int getItemCount() {
-            return problems.isEmpty() ? 1 : problems.size() + (problems.stream().allMatch(problem -> problem.selectedId != -1) ? 1 : 0);
+            int lastAnsweredIndex = -1;
+            for (int i = 0; i < problems.size(); i++) {
+                if (problems.get(i).selectedId != -1) lastAnsweredIndex = i;
+            }
+            return lastAnsweredIndex + 2;
         }
 
         @Override
         public int getItemViewType(int position) {
             return problems.isEmpty() ? 1 : position == problems.size() ? 2 : 0;
+        }
+
+        public String getShareText(int position) {
+            if (position < problems.size()) {
+                UserProblem problem = problems.get(position);
+                Context context = getContext();
+                if (context == null) throw new NullPointerException();
+                StringBuilder shareOptions = new StringBuilder();
+                for (int i = 0; i < problem.options.length; i++) {
+                    shareOptions.append(getString(R.string.user_test_option, alphabet[i], problem.options[i]));
+                    shareOptions.append('\n');
+                }
+                return getString(R.string.user_test_share_template, problem.question, shareOptions);
+            } else {
+                return getString(R.string.user_test_share_all_template, problems.size(), name, correctness);
+            }
         }
     }
 }
