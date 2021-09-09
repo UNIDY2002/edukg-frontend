@@ -9,15 +9,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -26,6 +28,8 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.java.sunxun.R;
+import com.java.sunxun.components.DraggableRecyclerViewAdapter;
+import com.java.sunxun.components.ItemDragHelperCallback;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.databinding.FragmentHomeBinding;
 import com.java.sunxun.models.Entity;
@@ -37,6 +41,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -52,10 +57,14 @@ public class HomeFragment extends Fragment {
     private int entityNumEveryRequest = 15;
     private int randomSeed = 0;
 
-    final private boolean[] isSubjectChecked = new boolean[subjectNum];
     private String rawInput = "";
 
     final static private int subjectNum = 9;
+    final static private ArrayList<String> subjectName = new ArrayList<>(Arrays.asList(
+            "语文", "英语", "数学", "物理", "化学", "生物", "历史", "地理", "政治"
+    ));
+    final private ArrayList<String> availableSubject = new ArrayList<>();
+    private int availableNum = subjectNum;
 
     private RecyclerViewAdapter<Entity> adapter = null;
 
@@ -63,7 +72,7 @@ public class HomeFragment extends Fragment {
     private boolean requestLock = false;
 
     public HomeFragment() {
-        for (int i = 0; i < subjectNum; ++i) isSubjectChecked[i] = true;
+        this.availableSubject.addAll(subjectName);
     }
 
     private RecyclerViewAdapter<Entity> getLatestAdapter() {
@@ -128,10 +137,9 @@ public class HomeFragment extends Fragment {
         requestLock = true;
 
         binding.subjectTab.removeAllTabs();
-        for (int i = 0; i < subjectNum; ++i) {
-            if (isSubjectChecked[i])
-                binding.subjectTab.addTab(binding.subjectTab.newTab()
-                    .setText(Subject.values()[i].toName(this.getActivity())));
+        for (int i = 0; i < availableNum; ++i) {
+            binding.subjectTab.addTab(binding.subjectTab.newTab()
+                    .setText(availableSubject.get(i)));
         }
 
         requestLock = false;
@@ -146,12 +154,10 @@ public class HomeFragment extends Fragment {
         Subject copy = selectedSubject;
         requestLock = true;
 
-        // Delete useless tabs
-        for (int i = 0, deleteNum = 0; i < subjectNum; ++i) {
-            if (!isSubjectChecked[i]) {
-                binding.subjectTab.removeTabAt(i - deleteNum);
-                ++deleteNum;
-            }
+        binding.subjectTab.removeAllTabs();
+        for (int i = 0; i < availableNum; ++i) {
+            binding.subjectTab.addTab(binding.subjectTab.newTab()
+                    .setText(availableSubject.get(i)));
         }
 
         // Set the selected state
@@ -164,12 +170,25 @@ public class HomeFragment extends Fragment {
         requestLock = false;
     }
 
-    /**
-     * This function will reset the checkboxes according to 'isSubjectChecked'.
-     */
-    private void updateCheckboxes() {
-        for (int i = 0; i < subjectNum; ++i)
-            ((MaterialCheckBox) binding.checkboxGrid.getChildAt(i)).setChecked(isSubjectChecked[i]);
+    private void setUpSubjectSelectionSection() {
+        binding.subjectSelection.setLayoutManager(new GridLayoutManager(this.getActivity(), 3));
+        ItemTouchHelper helper = new ItemTouchHelper(new ItemDragHelperCallback());
+        helper.attachToRecyclerView(binding.subjectSelection);
+        Log.d("Drag", "" + subjectName);
+        DraggableRecyclerViewAdapter<String> adapter = new DraggableRecyclerViewAdapter<>(this.getActivity(), helper, availableSubject, availableNum,
+                () -> binding.headerBtn.setText("FINISH"),
+                (mData, avail) -> {
+                    availableNum = avail;
+                    availableSubject.clear();
+                    availableSubject.addAll(mData);
+                });
+        binding.subjectSelection.setAdapter(adapter);
+
+        // Connect header & content
+        binding.headerBtn.setOnClickListener(v -> {
+            boolean isEdit = adapter.switchMode(binding.subjectSelection);
+            binding.headerBtn.setText(isEdit ? "FINISH" : "EDIT");
+        });
     }
 
     @Override
@@ -207,43 +226,31 @@ public class HomeFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) { }
         });
 
-        for (int i = 0; i < subjectNum; ++i) {
-            // Resolve errors in lambda
-            final int iCopy = i;
+        binding.pageSizeInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
-            ((MaterialCheckBox) binding.checkboxGrid.getChildAt(i)).setOnCheckedChangeListener((buttonView, isChecked) -> isSubjectChecked[iCopy] = isChecked);
-            binding.pageSizeInput.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void afterTextChanged(Editable s) {
+                Editable rawInputHandler = binding.pageSizeInput.getText();
+                rawInput = rawInputHandler == null ? "" : rawInputHandler.toString();
+            }
+        });
 
-                @Override
-                public void afterTextChanged(Editable s) {
-                    Editable rawInputHandler = binding.pageSizeInput.getText();
-                    rawInput = rawInputHandler == null ? "" : rawInputHandler.toString();
-                }
-            });
-        }
+        setUpSubjectSelectionSection();
 
         binding.settings.setOnClickListener(v -> binding.expandableTabWrapper.toggle());
         binding.confirm.setOnClickListener(v -> {
             // Handle exception when the user checked nothing
-            boolean isLegalCheck = false;
-            for (int i = 0; i < subjectNum; ++i) {
-                if (isSubjectChecked[i]) {
-                    selectedSubject = Subject.values()[i];
-                    isLegalCheck = true;
-                    break;
-                }
-            }
-            if (!isLegalCheck) {
-                Snackbar.make(v, R.string.nothing_checked_alert, Snackbar.LENGTH_SHORT).show();
-                requestLock = false;
-                return;
-            }
+            selectedSubject = Subject.fromName(this.getActivity(), availableSubject.get(0));
             updateSubjectTab();
+
+            // We need to end editing mode here
+            ((DraggableRecyclerViewAdapter<String>) binding.subjectSelection.getAdapter()).cancelEditMode(binding.subjectSelection);
+            binding.headerBtn.setText("EDIT");
 
             // When user input nothing, we ignore it
             if (rawInput.length() > 0) {
@@ -275,7 +282,6 @@ public class HomeFragment extends Fragment {
             updateEntityList(true);
         } else {
             resumeSubjectTab();
-            updateCheckboxes();
         }
 
         return binding.getRoot();

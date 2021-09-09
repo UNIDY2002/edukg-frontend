@@ -293,7 +293,7 @@ public class DetailFragment extends Fragment {
                     if (result.size() == 0) return;
 
                     // 随机渲染一个试题
-                    Problem problem = result.get((new Random().nextInt()) % result.size());
+                    Problem problem = result.get(new Random().nextInt(result.size()));
                     @SuppressLint("InflateParams")
                     View view = LayoutInflater.from(DetailFragment.this.getActivity()).inflate(R.layout.item_detail_problem, null);
                     ((TextView) view.findViewById(R.id.problem_text)).setText(problem.getQuestion());

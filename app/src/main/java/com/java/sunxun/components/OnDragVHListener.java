@@ -1,6 +1,6 @@
 package com.java.sunxun.components;
 
-public interface OnDragViewHolderListener {
+public interface OnDragVHListener {
     void onItemSelected();
     void onItemFinish();
 }
