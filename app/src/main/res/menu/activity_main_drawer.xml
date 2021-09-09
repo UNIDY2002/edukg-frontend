@@ -25,6 +25,9 @@
                 android:id="@+id/nav_star"
                 android:title="@string/star"/>
         <item
+                android:id="@+id/nav_user_test_recommended"
+                android:title="@string/problem_recommend"/>
+        <item
                 android:id="@+id/nav_modify"
                 android:title="@string/modify_password"/>
         <item

@@ -3,10 +3,7 @@ package com.java.sunxun.network;
 import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.java.sunxun.models.History;
-import com.java.sunxun.models.Problem;
-import com.java.sunxun.models.Star;
-import com.java.sunxun.models.Subject;
+import com.java.sunxun.models.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -256,13 +253,14 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void getRecommendedProblem(NetworkHandler<Problem> handler) {
+    public static void getRecommendedProblem(NetworkHandler<RecommendedProblem> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
         BaseNetwork.fetch(DATABASE_URL + "/api/getRecommendedProblem", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
-                handler.onSuccess(Problem.fromJson(o.getJSONObject("data")));
+                JSONObject data = o.getJSONObject("data");
+                handler.onSuccess(new RecommendedProblem(data.getString("label"), data.getString("uri"), Problem.fromJson(data.getJSONObject("problem"))));
             }
 
             @Override
