@@ -60,6 +60,12 @@
             tools:layout="@layout/fragment_register"/>
 
     <fragment
+            android:id="@+id/nav_modify"
+            android:name="com.java.sunxun.ui.ModifyPasswordFragment"
+            android:label="@string/modify_password"
+            tools:layout="@layout/fragment_modify_password"/>
+
+    <fragment
             android:id="@+id/nav_user_test_welcome"
             android:name="com.java.sunxun.ui.UserTestWelcomeFragment"
             android:label="@string/user_test"

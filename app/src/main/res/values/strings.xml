@@ -41,6 +41,8 @@
     <string name="voice_input_module_broken">录音模块启动失败。</string>
     <string name="username">用户名</string>
     <string name="password">密码</string>
+    <string name="prev_password">旧密码</string>
+    <string name="next_password">新密码</string>
     <string name="confirm_password">确认密码</string>
     <string name="sign_in">登录</string>
     <string name="cancel">取消</string>
@@ -51,10 +53,16 @@
     <string name="login_as_visitor">游客登录</string>
     <string name="login_register">新用户注册</string>
     <string name="register_processing">注册中，请稍候……</string>
+    <string name="please_wait">请稍候……</string>
     <string name="register_succeed">注册成功，已自动为您登录。</string>
     <string name="register_collide">用户名已存在，请重新注册。</string>
     <string name="register_failure">注册失败，请重试。</string>
     <string name="back">返回</string>
+    <string name="modify_password">修改密码</string>
+    <string name="modify_succeed">修改成功。</string>
+    <string name="modify_failure">修改密码失败。</string>
+    <string name="modify_prev_wrong">修改密码失败：原密码不正确。</string>
+    <string name="modify_not_change">修改密码失败：新密码与原密码一致。</string>
     <string name="login_edukg_failed">登录 eduKG 开放平台失败。</string>
     <string name="querying">查询中，请稍候……</string>
     <string name="query_done">查询成功。</string>

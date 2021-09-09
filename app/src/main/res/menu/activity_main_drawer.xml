@@ -25,6 +25,9 @@
                 android:id="@+id/nav_star"
                 android:title="@string/star"/>
         <item
+                android:id="@+id/nav_modify"
+                android:title="@string/modify_password"/>
+        <item
                 android:id="@+id/nav_logout"
                 android:title="@string/logout"/>
     </group>
