@@ -47,6 +47,7 @@
     <string name="logout">登出</string>
     <string name="logging_in">登录中，请稍候……</string>
     <string name="login_as_visitor">游客登录</string>
+    <string name="login_edukg_failed">登录 eduKG 开放平台失败。</string>
     <string name="querying">查询中，请稍候……</string>
     <string name="query_done">查询成功。</string>
     <string name="query_error">查询失败。</string>

@@ -37,17 +37,7 @@ public class User {
         ApplicationNetwork.login(username, password, new NetworkHandler<String>(handler.activity) {
             @Override
             public void onSuccess(String result) {
-                ApplicationNetwork.getId(new NetworkHandler<String>(handler.activity) {
-                    @Override
-                    public void onSuccess(String result) {
-                        handler.onSuccess(true);
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        handler.onError(e);
-                    }
-                });
+                handler.onSuccess(true);
             }
 
             @Override

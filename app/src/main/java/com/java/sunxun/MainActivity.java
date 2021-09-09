@@ -10,12 +10,14 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import com.google.android.material.snackbar.Snackbar;
 import com.iflytek.cloud.SpeechUtility;
 import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.dao.TestHistoryDB;
 import com.java.sunxun.databinding.ActivityMainBinding;
 import com.java.sunxun.models.User;
+import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
 import java.util.Objects;
@@ -71,6 +73,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(Exception e) {
 
+            }
+        });
+        ApplicationNetwork.getId(new NetworkHandler<String>(this) {
+            @Override
+            public void onSuccess(String result) {
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Snackbar.make(binding.navView, R.string.login_edukg_failed, Snackbar.LENGTH_SHORT).show();
             }
         });
 
