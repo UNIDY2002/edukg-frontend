@@ -71,6 +71,7 @@ public class ApplicationNetwork {
 
     public static void modifyPassword(String username, String prev, String next, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
+        params.put("id", id);
         params.put("username", username);
         params.put("oldPassword", prev);
         params.put("newPassword", next);
@@ -78,6 +79,44 @@ public class ApplicationNetwork {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void modifyProfile(String profile, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("id", id);
+        params.put("profile", profile);
+        BaseNetwork.fetch(BACKEND_URL + "/api/modifyProfile", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void getProfile(NetworkHandler<String> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        BaseNetwork.fetch(BACKEND_URL + "/api/getProfile", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                String data = o.getString("data");
+                if ("ashitemaru".equals(data)) {
+                    handler.onError(new NullPointerException());
+                } else {
+                    handler.onSuccess(data);
+                }
             }
 
             @Override

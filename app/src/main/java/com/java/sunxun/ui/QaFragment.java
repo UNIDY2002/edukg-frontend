@@ -5,10 +5,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.data.QaViewModel;
@@ -24,6 +27,7 @@ import com.java.sunxun.databinding.FragmentQaBinding;
 import com.java.sunxun.models.Answer;
 import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
+import com.java.sunxun.models.User;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
@@ -159,12 +163,15 @@ public class QaFragment extends Fragment {
         private class ViewHolder extends RecyclerView.ViewHolder {
             TextView text;
 
+            ImageView avatar;
+
             @Nullable
             TextView subject;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 text = view.findViewById(R.id.qa_item_text);
+                avatar = view.findViewById(R.id.qa_item_avatar);
                 subject = view.findViewById(R.id.qa_item_subject);
             }
         }
@@ -181,6 +188,13 @@ public class QaFragment extends Fragment {
         public void onBindViewHolder(@NonNull QaRvAdapter.ViewHolder holder, int position) {
             holder.text.setText(data.get(position).second);
             if (holder.subject != null) holder.subject.setText(data.get(position).first.toName(getContext()));
+            if (holder.subject == null) {
+                holder.avatar.setImageResource(R.drawable.edukg_avatar);
+            } else if (User.currentUser.getAvatar() == null) {
+                holder.avatar.setImageResource(R.drawable.avatar);
+            } else {
+                Glide.with(QaFragment.this).load(Base64.decode(User.currentUser.getAvatar(), Base64.DEFAULT)).into(holder.avatar);
+            }
         }
 
         @Override

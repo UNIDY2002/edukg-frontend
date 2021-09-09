@@ -1,6 +1,7 @@
 package com.java.sunxun.models;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.java.sunxun.exceptions.ApplicationLoginFailureException;
 import com.java.sunxun.exceptions.ApplicationRegisterCollisionException;
 import com.java.sunxun.exceptions.ApplicationRegisterFailureException;
@@ -15,6 +16,8 @@ import java.util.function.Consumer;
 public class User {
     private final String username;
     private final String password;
+
+    private String avatar = null;
 
     private final static ArrayList<Consumer<String>> onUsernameChangedListeners = new ArrayList<>();
 
@@ -34,6 +37,15 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    @Nullable
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        if (!isVisitor()) this.avatar = avatar;
     }
 
     private static void performLogin(String username, String password, NetworkHandler<Boolean> handler) {

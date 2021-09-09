@@ -3,6 +3,8 @@ package com.java.sunxun;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Base64;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -10,6 +12,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.iflytek.cloud.SpeechUtility;
 import com.java.sunxun.dao.DetailCacheDB;
@@ -19,7 +22,16 @@ import com.java.sunxun.databinding.ActivityMainBinding;
 import com.java.sunxun.models.User;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
+import com.java.sunxun.utils.GlideEngine;
+import com.luck.picture.lib.PictureSelector;
+import com.luck.picture.lib.config.PictureConfig;
+import com.luck.picture.lib.config.PictureMimeType;
+import com.luck.picture.lib.entity.LocalMedia;
+import com.luck.picture.lib.listener.OnResultCallbackListener;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -51,6 +63,88 @@ public class MainActivity extends AppCompatActivity {
                 if (User.isVisitor()) {
                     binding.mainDrawer.close();
                     navHostFragment.getNavController().navigate(R.id.nav_login);
+                }
+            });
+
+            // 设置抽屉栏头像
+            ImageView avatarImage = binding.navView.getHeaderView(0).findViewById(R.id.drawer_avatar_image);
+            avatarImage.setOnClickListener(v -> {
+                        if (User.isVisitor()) {
+                            binding.mainDrawer.close();
+                            navHostFragment.getNavController().navigate(R.id.nav_login);
+                            return;
+                        }
+                        PictureSelector.create(this)
+                                .openGallery(PictureMimeType.ofImage())
+                                .imageEngine(GlideEngine.createGlideEngine())
+                                .selectionMode(PictureConfig.SINGLE)
+                                .isWeChatStyle(true)
+                                .isCamera(true)
+                                .isEnableCrop(true)
+                                .withAspectRatio(1, 1)
+                                .forResult(new OnResultCallbackListener<LocalMedia>() {
+                                    @Override
+                                    public void onResult(List<LocalMedia> result) {
+                                        try {
+                                            String path = result.get(0).getAndroidQToPath();
+                                            String imageBase64;
+                                            InputStream inputStream = null;
+                                            try {
+                                                inputStream = new FileInputStream(path);
+                                                byte[] bytes = new byte[inputStream.available()];
+                                                if (inputStream.read(bytes) == -1) throw new RuntimeException();
+                                                imageBase64 = Base64.encodeToString(bytes, Base64.DEFAULT);
+                                            } finally {
+                                                try {
+                                                    if (inputStream != null) inputStream.close();
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                            String finalImageBase64 = imageBase64;
+                                            ApplicationNetwork.modifyProfile(imageBase64, new NetworkHandler<Boolean>(MainActivity.this) {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    Snackbar.make(binding.navView, R.string.avatar_upload_succeed, Snackbar.LENGTH_SHORT).show();
+                                                    User.currentUser.setAvatar(finalImageBase64);
+                                                    Glide.with(MainActivity.this)
+                                                            .load(Base64.decode(finalImageBase64, Base64.DEFAULT))
+                                                            .into(avatarImage);
+                                                }
+
+                                                @Override
+                                                public void onError(Exception e) {
+                                                    Snackbar.make(binding.navView, R.string.avatar_upload_fail, Snackbar.LENGTH_SHORT).show();
+                                                    e.printStackTrace();
+                                                }
+                                            });
+                                        } catch (Exception e) {
+                                            Snackbar.make(binding.navView, R.string.avatar_upload_fail, Snackbar.LENGTH_SHORT).show();
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+
+                                    @Override
+                                    public void onCancel() {
+
+                                    }
+                                });
+                    }
+            );
+
+            ApplicationNetwork.getProfile(new NetworkHandler<String>(this) {
+                @Override
+                public void onSuccess(String result) {
+                    User.currentUser.setAvatar(result);
+                    Glide.with(MainActivity.this)
+                            .load(Base64.decode(result, Base64.DEFAULT))
+                            .into(avatarImage);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
                 }
             });
         }

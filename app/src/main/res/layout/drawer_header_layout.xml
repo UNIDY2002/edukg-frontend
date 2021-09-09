@@ -6,6 +6,13 @@
         android:padding="16dp"
         android:orientation="vertical">
 
+    <ImageView
+            android:id="@+id/drawer_avatar_image"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/avatar"
+            android:contentDescription="@string/avatar"/>
+
     <TextView
             android:id="@+id/drawer_username_text"
             android:layout_width="match_parent"
