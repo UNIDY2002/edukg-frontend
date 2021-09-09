@@ -68,10 +68,6 @@ public class HomeFragment extends Fragment {
     // This lock prevents updating entity list when params are being reset
     private boolean requestLock = false;
 
-    public HomeFragment() {
-        for (int i = 0; i < subjectNum; ++i) availableSubject.add(Subject.values()[i].toName(this.getActivity()));
-    }
-
     private RecyclerViewAdapter<Entity> getLatestAdapter() {
         return new RecyclerViewAdapter<Entity>(
                 HomeFragment.this.getActivity(), R.layout.item_home_entity, baseEntities
@@ -189,6 +185,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        for (int i = 0; i < subjectNum; ++i) availableSubject.add(Subject.values()[i].toName(this.getActivity()));
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         binding.homeMenuIcon.setOnClickListener(view -> ((DrawerLayout) ((Activity) getContext()).findViewById(R.id.main_drawer)).open());
         binding.homeSearchInput.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_search));
