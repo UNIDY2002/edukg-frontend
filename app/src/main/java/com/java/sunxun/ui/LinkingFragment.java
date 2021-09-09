@@ -1,5 +1,6 @@
 package com.java.sunxun.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
@@ -25,6 +26,7 @@ import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
+import com.java.sunxun.utils.SpeechRecognition;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -134,6 +136,12 @@ public class LinkingFragment extends Fragment {
 
         viewModel.getResult().observe(getViewLifecycleOwner(), result -> binding.linkingAnswerField.setText(result));
 
+        Activity activity = getActivity();
+        if (activity == null) {
+            binding.linkingVoiceInput.setVisibility(View.GONE);
+        } else {
+            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.linkingVoiceInput, text -> binding.linkingQuestionInput.getEditableText().insert(binding.linkingQuestionInput.getSelectionStart(), text));
+        }
 
         return binding.getRoot();
     }

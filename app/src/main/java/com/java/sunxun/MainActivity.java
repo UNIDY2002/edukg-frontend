@@ -10,6 +10,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import com.iflytek.cloud.SpeechUtility;
 import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.dao.SearchHistoryDB;
 import com.java.sunxun.dao.TestHistoryDB;
@@ -88,6 +89,9 @@ public class MainActivity extends AppCompatActivity {
         DetailCacheDB.init(this);
         SearchHistoryDB.init(this);
         TestHistoryDB.init(this);
+
+        // 初始化语音识别
+        SpeechUtility.createUtility(this, "appid=9c3f825b");
     }
 
     @Override

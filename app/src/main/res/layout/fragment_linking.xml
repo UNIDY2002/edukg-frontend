@@ -129,4 +129,15 @@
             android:textSize="16sp"
             android:textIsSelectable="true"
             android:lineSpacingMultiplier="1.2"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/linking_voice_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_mic"
+            android:contentDescription="@string/voice_input"
+            android:layout_marginBottom="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
