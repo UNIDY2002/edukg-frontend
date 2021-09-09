@@ -91,12 +91,9 @@ public class User {
         });
     }
 
-    public void refreshCredentials(NetworkHandler<Boolean> handler) {
-        performLogin(username, password, handler);
-    }
-
     public void logout() {
         currentUser = VISITOR;
+        ApplicationNetwork.logout();
         onUsernameChangedListeners.forEach(listener -> listener.accept(VISITOR.username));
     }
 

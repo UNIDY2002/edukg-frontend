@@ -30,6 +30,7 @@ import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.databinding.FragmentHomeBinding;
 import com.java.sunxun.models.Entity;
 import com.java.sunxun.models.Subject;
+import com.java.sunxun.models.User;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -176,7 +177,9 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         binding.homeMenuIcon.setOnClickListener(view -> ((DrawerLayout) ((Activity) getContext()).findViewById(R.id.main_drawer)).open());
         binding.homeSearchInput.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_search));
-        binding.homeHistoryIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_history));
+        binding.homeHistoryIcon.setOnClickListener(view -> {
+            NavHostFragment.findNavController(this).navigate(User.isVisitor() ? R.id.nav_login : R.id.nav_history);
+        });
 
         binding.entityList.setLayoutManager(new LinearLayoutManager(HomeFragment.this.getActivity()));
         if (adapter != null) binding.entityList.setAdapter(adapter);

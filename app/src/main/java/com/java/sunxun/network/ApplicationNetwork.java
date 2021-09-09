@@ -253,4 +253,8 @@ public class ApplicationNetwork {
             }
         });
     }
+
+    public static void logout() {
+        id = "";
+    }
 }
