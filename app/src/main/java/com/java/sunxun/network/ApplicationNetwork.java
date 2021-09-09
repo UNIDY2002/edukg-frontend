@@ -53,6 +53,23 @@ public class ApplicationNetwork {
         });
     }
 
+    public static void register(String username, String password, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("username", username);
+        params.put("password", password);
+        BaseNetwork.fetch(BACKEND_URL + "/api/register", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
     public static void getId(NetworkHandler<String> handler) {
         BaseNetwork.fetch(BACKEND_URL + "/api/getId", new HashMap<>(), BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override

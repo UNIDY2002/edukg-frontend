@@ -22,10 +22,6 @@ public class LoginFragment extends Fragment {
     @Nullable
     private FragmentLoginBinding binding;
 
-    private Fragment getThis() {
-        return this;
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentLoginBinding.inflate(inflater, container, false);
@@ -63,24 +59,26 @@ public class LoginFragment extends Fragment {
                 User.login(username.toString(), password.toString(), new NetworkHandler<User>(this) {
                     @Override
                     public void onSuccess(User user) {
+                        Snackbar.make(view, R.string.login_succeed, Snackbar.LENGTH_SHORT).show();
                         view.getContext().getSharedPreferences("credentials", Context.MODE_PRIVATE)
                                 .edit()
                                 .putString("username", user.getUsername())
                                 .putString("password", user.getPassword())
                                 .apply();
-                        NavHostFragment.findNavController(getThis()).navigateUp();
+                        NavHostFragment.findNavController(LoginFragment.this).navigateUp();
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        Snackbar.make(view, R.string.login_failure, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(view, R.string.login_failure, Snackbar.LENGTH_SHORT).show();
                     }
                 });
-
             }
         });
 
         binding.loginAsVisitorText.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
+
+        binding.loginRegisterText.setOnClickListener(view -> NavHostFragment.findNavController(this).navigate(R.id.nav_register));
 
         return binding.getRoot();
     }

@@ -2,6 +2,9 @@ package com.java.sunxun.models;
 
 import androidx.annotation.NonNull;
 import com.java.sunxun.exceptions.ApplicationLoginFailureException;
+import com.java.sunxun.exceptions.ApplicationRegisterCollisionException;
+import com.java.sunxun.exceptions.ApplicationRegisterFailureException;
+import com.java.sunxun.exceptions.InvalidCodeException;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
@@ -64,6 +67,28 @@ public class User {
         } else {
             handler.onError(new ApplicationLoginFailureException());
         }
+    }
+
+    public static void register(String username, String password, NetworkHandler<User> handler) {
+        ApplicationNetwork.register(username, password, new NetworkHandler<Boolean>(handler.activity) {
+            @Override
+            public void onSuccess(Boolean result) {
+                login(username, password, handler);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (e instanceof InvalidCodeException) {
+                    if ("1".equals(((InvalidCodeException) e).code)) {
+                        handler.onError(new ApplicationRegisterCollisionException());
+                    } else {
+                        handler.onError(new ApplicationRegisterFailureException());
+                    }
+                } else {
+                    handler.onError(e);
+                }
+            }
+        });
     }
 
     public void refreshCredentials(NetworkHandler<Boolean> handler) {
