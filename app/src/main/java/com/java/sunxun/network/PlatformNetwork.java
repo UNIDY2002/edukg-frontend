@@ -7,8 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.models.*;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PlatformNetwork {
     @NonNull
@@ -196,39 +194,11 @@ public class PlatformNetwork {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 JSONArray problems = o.getJSONArray("data");
-                Pattern pattern = Pattern.compile("[A-Za-z]\\.");
                 ArrayList<Problem> results = new ArrayList<>();
                 for (int i = 0; i < problems.size(); i++) {
                     try {
-                        JSONObject obj = problems.getJSONObject(i);
-                        int id = obj.getIntValue("id");
-                        String qBody = obj.getString("qBody");
-                        String qAnswer = obj.getString("qAnswer");
-                        Matcher matcher = pattern.matcher(qBody);
-                        if (!matcher.find()) continue;
-                        int lastStart = matcher.start();
-                        String question = qBody.substring(0, lastStart);
-                        String answer = null;
-                        ArrayList<String> distractionList = new ArrayList<>();
-                        while (matcher.find()) {
-                            String currentTag = qBody.substring(lastStart, lastStart + 1);
-                            String option = qBody.substring(lastStart + 2, matcher.start());
-                            if (currentTag.equals(qAnswer)) {
-                                answer = option;
-                            } else {
-                                distractionList.add(option);
-                            }
-                            lastStart = matcher.start();
-                        }
-                        String currentTag = qBody.substring(lastStart, lastStart + 1);
-                        String option = qBody.substring(lastStart + 2);
-                        if (currentTag.equals(qAnswer)) {
-                            answer = option;
-                        } else {
-                            distractionList.add(option);
-                        }
-                        if (answer == null) continue;
-                        results.add(new Problem(id, question, answer, distractionList.toArray(new String[0])));
+                        Problem problem = Problem.fromJson(problems.getJSONObject(i));
+                        if (problem != null) results.add(problem);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

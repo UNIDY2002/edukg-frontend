@@ -44,6 +44,8 @@ public class UserTestProblemsFragment extends Fragment {
 
     private String name;
 
+    private String uri;
+
     private String correctness;
 
     @Override
@@ -60,7 +62,8 @@ public class UserTestProblemsFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             name = bundle.getString("name");
-            if (name != null) {
+            uri = bundle.getString("uri");
+            if (name != null && uri != null) {
                 PlatformNetwork.relatedProblems(name, new NetworkHandler<ArrayList<Problem>>(this) {
                     @Override
                     public void onSuccess(ArrayList<Problem> problems) {
@@ -218,7 +221,7 @@ public class UserTestProblemsFragment extends Fragment {
                     problem.selectedId = j;
                     notifyItemChanged(position);
                     notifyItemInserted(position + 1);
-                    ApplicationNetwork.uploadTestResult(name, j == problem.answerId, new NetworkHandler<Boolean>(UserTestProblemsFragment.this) {
+                    ApplicationNetwork.uploadTestResult(uri, name, j == problem.answerId, new NetworkHandler<Boolean>(UserTestProblemsFragment.this) {
                         @Override
                         public void onSuccess(Boolean result) {
 

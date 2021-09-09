@@ -80,6 +80,7 @@
     <string name="avatar">头像</string>
     <string name="user_test">专项测试</string>
     <string name="user_test_hint">请输入你感兴趣的知识点。</string>
+    <string name="entity_not_found">没有找到该实体。</string>
     <string name="no_problems_found">没有找到相关习题。</string>
     <string name="start_test">开始测试</string>
     <string name="user_test_question">%d. %s</string>

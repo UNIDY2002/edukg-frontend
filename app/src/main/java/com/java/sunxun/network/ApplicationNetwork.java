@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.models.History;
+import com.java.sunxun.models.Problem;
 import com.java.sunxun.models.Star;
 import com.java.sunxun.models.Subject;
 
@@ -236,15 +237,32 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void uploadTestResult(String name, boolean isCorrect, NetworkHandler<Boolean> handler) {
+    public static void uploadTestResult(String uri, String name, boolean isCorrect, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
         params.put("id", id);
+        params.put("uri", uri);
         params.put("label", name);
         params.put("correct", isCorrect ? 1 : 0);
-        BaseNetwork.fetch(DATABASE_URL + "/api/addProblem", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+        BaseNetwork.fetch(DATABASE_URL + "/api/addProblemRecord", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
                 handler.onSuccess(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void getRecommendedProblem(NetworkHandler<Problem> handler) {
+        Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        BaseNetwork.fetch(DATABASE_URL + "/api/getRecommendedProblem", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess(Problem.fromJson(o.getJSONObject("data")));
             }
 
             @Override
