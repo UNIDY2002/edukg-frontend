@@ -101,4 +101,5 @@
     <string name="entity_num_out_of_range_alert">实体个数应当不小于 5 个不多于 100 个。</string>
     <string name="do_not_support_linking">该实体暂不支持跳转。</string>
     <string name="problem_recommend">试题推荐</string>
+    <string name="loading">玩命加载中……</string>
 </resources>

@@ -3,6 +3,7 @@ package com.java.sunxun.network;
 import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.java.sunxun.exceptions.RetryTimeExceededException;
 import com.java.sunxun.models.*;
 
 import java.text.SimpleDateFormat;
@@ -253,14 +254,28 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void getRecommendedProblem(NetworkHandler<RecommendedProblem> handler) {
+    public static void getRecommendedProblem(int retryTimes, NetworkHandler<RecommendedProblem> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
+        params.put("onlyNew", String.valueOf(retryTimes < 5 ? 1 : 0));
         BaseNetwork.fetch(DATABASE_URL + "/api/getRecommendedProblem", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
-                JSONObject data = o.getJSONObject("data");
-                handler.onSuccess(new RecommendedProblem(data.getString("label"), data.getString("uri"), Problem.fromJson(data.getJSONObject("problem"))));
+                if (o.getIntValue("iszero") == 0) {
+                    JSONObject data = o.getJSONObject("data");
+                    Problem problem = Problem.fromJson(data.getJSONObject("problem"));
+                    if (problem != null) {
+                        handler.onSuccess(new RecommendedProblem(data.getString("label"), data.getString("uri"), problem));
+                    } else if (retryTimes > 0) {
+                        getRecommendedProblem(retryTimes - 1, handler);
+                    } else {
+                        handler.onError(new RetryTimeExceededException());
+                    }
+                } else if (retryTimes > 0) {
+                    getRecommendedProblem(retryTimes - 1, handler);
+                } else {
+                    handler.onError(new RetryTimeExceededException());
+                }
             }
 
             @Override

@@ -46,7 +46,7 @@ public class UserTestRecommendedFragment extends Fragment {
         binding.recommendedRecyclerView.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(binding.recommendedRecyclerView);
 
-        ApplicationNetwork.getRecommendedProblem(new NetworkHandler<RecommendedProblem>(this) {
+        ApplicationNetwork.getRecommendedProblem(10, new NetworkHandler<RecommendedProblem>(this) {
             @Override
             public void onSuccess(RecommendedProblem recommendedProblem) {
                 adapter.addProblem(recommendedProblem);
@@ -84,12 +84,14 @@ public class UserTestRecommendedFragment extends Fragment {
             TextView question;
             LinearLayout options;
             MaterialButton nextProblem;
+            View loading;
 
             public ViewHolder(@NonNull View view) {
                 super(view);
                 question = view.findViewById(R.id.user_test_question);
                 options = view.findViewById(R.id.user_test_options);
                 nextProblem = view.findViewById(R.id.user_test_next_problem_button);
+                loading = view.findViewById(R.id.user_test_next_problem_loading);
             }
         }
 
@@ -136,23 +138,32 @@ public class UserTestRecommendedFragment extends Fragment {
 
                         }
                     });
-                    ApplicationNetwork.getRecommendedProblem(new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
+                    problem.loading = true;
+                    holder.loading.setVisibility(View.VISIBLE);
+                    ApplicationNetwork.getRecommendedProblem(10, new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
                         @Override
                         public void onSuccess(RecommendedProblem result) {
+                            problem.loading = false;
+                            holder.loading.setVisibility(View.GONE);
                             addProblem(result);
-                            notifyItemInserted(position + 1);
                         }
 
                         @Override
                         public void onError(Exception e) {
-                            Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                            problem.loading = false;
+                            holder.loading.setVisibility(View.GONE);
+                            notifyItemChanged(position);
+                            if (binding != null) {
+                                Snackbar.make(binding.recommendedRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                            }
                             e.printStackTrace();
                         }
                     });
                 });
                 holder.options.addView(view);
             }
-            holder.nextProblem.setVisibility(problem.selectedId == -1 ? View.GONE : View.VISIBLE);
+            holder.loading.setVisibility(problem.loading ? View.VISIBLE : View.GONE);
+            holder.nextProblem.setVisibility(position == problems.size() - 1 ? View.GONE : View.VISIBLE);
             holder.nextProblem.setOnClickListener(v -> {
                 if (binding != null) {
                     RecyclerView.LayoutManager manager = binding.recommendedRecyclerView.getLayoutManager();
@@ -176,6 +187,7 @@ public class UserTestRecommendedFragment extends Fragment {
         public void addProblem(RecommendedProblem problem) {
             Pair<String[], Integer> options = problem.problem.genRandomOptions(alphabet.length);
             problems.add(new UserProblem(problem.label, problem.uri, problem.problem.getQuestion(), options.first, options.second));
+            notifyDataSetChanged();
         }
 
         public String getShareText(int position) {
@@ -197,6 +209,7 @@ public class UserTestRecommendedFragment extends Fragment {
             String[] options;
             int answerId;
             int selectedId = -1;
+            boolean loading = false;
 
             UserProblem(String label, String uri, String question, String[] options, int answerId) {
                 this.label = label;
