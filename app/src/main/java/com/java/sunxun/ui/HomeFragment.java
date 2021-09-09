@@ -60,9 +60,6 @@ public class HomeFragment extends Fragment {
     private String rawInput = "";
 
     final static private int subjectNum = 9;
-    final static private ArrayList<String> subjectName = new ArrayList<>(Arrays.asList(
-            "语文", "英语", "数学", "物理", "化学", "生物", "历史", "地理", "政治"
-    ));
     final private ArrayList<String> availableSubject = new ArrayList<>();
     private int availableNum = subjectNum;
 
@@ -72,7 +69,7 @@ public class HomeFragment extends Fragment {
     private boolean requestLock = false;
 
     public HomeFragment() {
-        this.availableSubject.addAll(subjectName);
+        for (int i = 0; i < subjectNum; ++i) availableSubject.add(Subject.values()[i].toName(this.getActivity()));
     }
 
     private RecyclerViewAdapter<Entity> getLatestAdapter() {
@@ -174,7 +171,6 @@ public class HomeFragment extends Fragment {
         binding.subjectSelection.setLayoutManager(new GridLayoutManager(this.getActivity(), 3));
         ItemTouchHelper helper = new ItemTouchHelper(new ItemDragHelperCallback());
         helper.attachToRecyclerView(binding.subjectSelection);
-        Log.d("Drag", "" + subjectName);
         DraggableRecyclerViewAdapter<String> adapter = new DraggableRecyclerViewAdapter<>(this.getActivity(), helper, availableSubject, availableNum,
                 () -> binding.headerBtn.setText("FINISH"),
                 (mData, avail) -> {
