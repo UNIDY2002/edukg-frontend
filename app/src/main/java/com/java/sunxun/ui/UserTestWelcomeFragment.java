@@ -1,5 +1,6 @@
 package com.java.sunxun.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +16,7 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.java.sunxun.R;
 import com.java.sunxun.dao.TestHistoryDB;
 import com.java.sunxun.databinding.FragmentUserTestWelcomeBinding;
+import com.java.sunxun.utils.SpeechRecognition;
 
 import java.util.List;
 
@@ -89,6 +91,10 @@ public class UserTestWelcomeFragment extends Fragment {
             }
         });
         updateHistory(binding.userTestHistoryContainer);
+        Activity activity = getActivity();
+        if (activity != null) {
+            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.userTestVoiceInput, false, text -> binding.userTestWelcomeNameInput.getEditableText().insert(binding.userTestWelcomeNameInput.getSelectionStart(), text));
+        }
         return binding.getRoot();
     }
 

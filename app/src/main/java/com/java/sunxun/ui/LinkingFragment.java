@@ -140,7 +140,7 @@ public class LinkingFragment extends Fragment {
         if (activity == null) {
             binding.linkingVoiceInput.setVisibility(View.GONE);
         } else {
-            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.linkingVoiceInput, text -> binding.linkingQuestionInput.getEditableText().insert(binding.linkingQuestionInput.getSelectionStart(), text));
+            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.linkingVoiceInput, true, text -> binding.linkingQuestionInput.getEditableText().insert(binding.linkingQuestionInput.getSelectionStart(), text));
         }
 
         return binding.getRoot();

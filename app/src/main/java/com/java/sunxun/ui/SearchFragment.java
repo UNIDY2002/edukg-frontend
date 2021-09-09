@@ -1,6 +1,7 @@
 package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import com.java.sunxun.models.SearchResult;
 import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
+import com.java.sunxun.utils.SpeechRecognition;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -110,6 +112,7 @@ public class SearchFragment extends Fragment {
             if (hasFocus) {
                 searching = true;
                 binding.searchHistoryContainer.setVisibility(View.VISIBLE);
+                binding.searchVoiceInput.setVisibility(View.VISIBLE);
                 binding.searchRecyclerView.setVisibility(View.GONE);
                 binding.searchNoResultText.setVisibility(View.GONE);
             }
@@ -137,6 +140,7 @@ public class SearchFragment extends Fragment {
                 }
                 searching = false;
                 binding.searchHistoryContainer.setVisibility(View.GONE);
+                binding.searchVoiceInput.setVisibility(View.GONE);
                 binding.searchLoadingSpinner.setVisibility(View.VISIBLE);
                 PlatformNetwork.searchInstance(subject, editText.toString(), new NetworkHandler<ArrayList<SearchResult>>(v) {
                     @Override
@@ -162,6 +166,10 @@ public class SearchFragment extends Fragment {
         });
         binding.searchRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         if (adapter != null) binding.searchRecyclerView.setAdapter(adapter);
+        Activity activity = getActivity();
+        if (activity != null) {
+            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.searchVoiceInput, false, text -> binding.searchSearchInput.getEditableText().insert(binding.searchSearchInput.getSelectionStart(), text));
+        }
         updateHistory(
                 binding.searchHistoryContainer,
                 binding.searchSubjectText,
@@ -171,10 +179,12 @@ public class SearchFragment extends Fragment {
         if (searching) {
             binding.searchSearchInput.requestFocus();
             binding.searchHistoryContainer.setVisibility(View.VISIBLE);
+            binding.searchVoiceInput.setVisibility(View.VISIBLE);
             binding.searchRecyclerView.setVisibility(View.GONE);
             binding.searchNoResultText.setVisibility(View.GONE);
         } else {
             binding.searchHistoryContainer.setVisibility(View.GONE);
+            binding.searchVoiceInput.setVisibility(View.GONE);
             binding.searchRecyclerView.setVisibility(View.VISIBLE);
         }
         return binding.getRoot();
@@ -593,7 +603,7 @@ public class SearchFragment extends Fragment {
             public SearchResultWithLargeImage(SearchResult searchResult, String imageUrl, @Nullable String anyText) {
                 super(searchResult);
                 this.imageUrl = imageUrl;
-             this.anyText = anyText;
+                this.anyText = anyText;
             }
         }
 

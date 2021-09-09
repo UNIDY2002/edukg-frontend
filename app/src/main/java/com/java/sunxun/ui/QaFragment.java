@@ -1,5 +1,6 @@
 package com.java.sunxun.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
@@ -26,6 +27,7 @@ import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Components;
+import com.java.sunxun.utils.SpeechRecognition;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -135,6 +137,11 @@ public class QaFragment extends Fragment {
         });
 
         viewModel.pushToQaListIfEmpty(null, getString(R.string.qa_welcome));
+
+        Activity activity = getActivity();
+        if (activity != null) {
+            SpeechRecognition.bindViewToSpeechRecognizer(activity, binding.qaMicButton, true, text -> binding.qaQuestionInput.getEditableText().insert(binding.qaQuestionInput.getSelectionStart(), text));
+        }
 
         return binding.getRoot();
     }

@@ -15,7 +15,7 @@ import com.java.sunxun.R;
 public class SpeechRecognition {
     private static final String PERMISSION = Manifest.permission.RECORD_AUDIO;
 
-    public static void bindViewToSpeechRecognizer(@NonNull Activity activity, @NonNull View view, @NonNull SpeechRecognitionCallback callback) {
+    public static void bindViewToSpeechRecognizer(@NonNull Activity activity, @NonNull View view, boolean asrPtt, @NonNull SpeechRecognitionCallback callback) {
         if (activity.checkSelfPermission(PERMISSION) != PackageManager.PERMISSION_GRANTED) {
             new AlertDialog.Builder(activity)
                     .setTitle(R.string.voice_input_request_title)
@@ -32,11 +32,65 @@ public class SpeechRecognition {
                 try {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN: {
-                            v.performClick();
+                            if (activity.checkSelfPermission(PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+                                Snackbar.make(v, R.string.voice_input_request_denied, Snackbar.LENGTH_SHORT).show();
+                                return false;
+                            }
+
+                            try {
+                                recognizer.setParameter(SpeechConstant.CLOUD_GRAMMAR, null);
+                                recognizer.setParameter(SpeechConstant.SUBJECT, null);
+                                recognizer.setParameter(SpeechConstant.RESULT_TYPE, "plain");
+                                recognizer.setParameter(SpeechConstant.ENGINE_TYPE, "cloud");
+                                recognizer.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
+                                recognizer.setParameter(SpeechConstant.ACCENT, "mandarin");
+                                recognizer.setParameter(SpeechConstant.VAD_BOS, "4000");
+                                recognizer.setParameter(SpeechConstant.VAD_EOS, "1000");
+                                recognizer.setParameter(SpeechConstant.ASR_PTT, asrPtt ? "1" : "0");
+                                recognizer.startListening(new RecognizerListener() {
+                                    @Override
+                                    public void onVolumeChanged(int i, byte[] bytes) {
+
+                                    }
+
+                                    @Override
+                                    public void onBeginOfSpeech() {
+
+                                    }
+
+                                    @Override
+                                    public void onEndOfSpeech() {
+
+                                    }
+
+                                    @Override
+                                    public void onResult(RecognizerResult recognizerResult, boolean b) {
+                                        try {
+                                            callback.onNewText(recognizerResult.getResultString());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(SpeechError speechError) {
+                                        Snackbar.make(v, speechError.getErrorDescription(), Snackbar.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onEvent(int i, int i1, int i2, Bundle bundle) {
+
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Snackbar.make(v, R.string.voice_input_module_broken, Snackbar.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            }
                             break;
                         }
                         case MotionEvent.ACTION_UP: {
                             if (recognizer.isListening()) recognizer.stopListening();
+                            v.performClick();
                             break;
                         }
                     }
@@ -48,60 +102,6 @@ public class SpeechRecognition {
             });
 
             view.setOnClickListener(v -> {
-                if (activity.checkSelfPermission(PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-                    Snackbar.make(v, R.string.voice_input_request_denied, Snackbar.LENGTH_SHORT).show();
-                    return;
-                }
-
-                try {
-                    recognizer.setParameter(SpeechConstant.CLOUD_GRAMMAR, null);
-                    recognizer.setParameter(SpeechConstant.SUBJECT, null);
-                    recognizer.setParameter(SpeechConstant.RESULT_TYPE, "plain");
-                    recognizer.setParameter(SpeechConstant.ENGINE_TYPE, "cloud");
-                    recognizer.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
-                    recognizer.setParameter(SpeechConstant.ACCENT, "mandarin");
-                    recognizer.setParameter(SpeechConstant.VAD_BOS, "4000");
-                    recognizer.setParameter(SpeechConstant.VAD_EOS, "1000");
-                    recognizer.setParameter(SpeechConstant.ASR_PTT, "1");
-                    recognizer.startListening(new RecognizerListener() {
-                        @Override
-                        public void onVolumeChanged(int i, byte[] bytes) {
-
-                        }
-
-                        @Override
-                        public void onBeginOfSpeech() {
-
-                        }
-
-                        @Override
-                        public void onEndOfSpeech() {
-
-                        }
-
-                        @Override
-                        public void onResult(RecognizerResult recognizerResult, boolean b) {
-                            try {
-                                callback.onNewText(recognizerResult.getResultString());
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        @Override
-                        public void onError(SpeechError speechError) {
-                            Snackbar.make(v, speechError.getErrorDescription(), Snackbar.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onEvent(int i, int i1, int i2, Bundle bundle) {
-
-                        }
-                    });
-                } catch (Exception e) {
-                    Snackbar.make(v, R.string.voice_input_module_broken, Snackbar.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
             });
         } catch (Exception e) {
             Snackbar.make(view, R.string.voice_input_module_broken, Snackbar.LENGTH_SHORT).show();

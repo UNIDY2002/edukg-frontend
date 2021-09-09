@@ -84,6 +84,21 @@
             android:orientation="horizontal"
             android:gravity="center">
 
+        <com.google.android.material.button.MaterialButton
+                android:id="@+id/qa_mic_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="4dp"
+                app:cornerRadius="19dp"
+                app:icon="@drawable/ic_mic"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"/>
+
         <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
