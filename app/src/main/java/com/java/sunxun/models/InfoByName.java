@@ -22,20 +22,29 @@ public class InfoByName {
     final private String label;
     final private ArrayList<Pair<String, InfoByName>> subjectRelation;
     final private ArrayList<Pair<String, InfoByName>> objectRelation;
-    final private ArrayList<Pair<String, String>> property;
+    private ArrayList<Pair<String, String>> property;
+    final private ArrayList<Pair<String, String>> imgProperty = new ArrayList<>();
 
     private void filterAndSortProperty() {
         ArrayList<String> propertyValues = new ArrayList<>();
+        ArrayList<String> imgUrl = new ArrayList<>();
         HashMap<String, String> tmpProperty = new HashMap<>();
-
-        // TODO: http://kb.cs.tsinghua.edu.cn... is picture
-        // TODO: Handle "图片" keys
 
         /* Filter keys in blacklist & remove duplicated properties
          * Handle duplicated keys & Handle empty value
+         * Handle value containing 'http'
          */
         for (Pair<String, String> kvPair: property) {
-            if (blackList.contains(kvPair.first) || propertyValues.contains(kvPair.second) || kvPair.second.trim().isEmpty()) continue;
+            if (kvPair.second.contains("http://kb.cs.tsinghua.edu.cn")) {
+                if (kvPair.second.contains("start-point") || imgUrl.contains(kvPair.second)) continue;
+                imgProperty.add(kvPair);
+                imgUrl.add(kvPair.second);
+                continue;
+            }
+            if (blackList.contains(kvPair.first)
+                    || propertyValues.contains(kvPair.second)
+                    || kvPair.second.trim().isEmpty()
+                    || kvPair.second.contains("http")) continue;
             propertyValues.add(kvPair.second);
             if (tmpProperty.containsKey(kvPair.first)) {
                 String originVal = tmpProperty.get(kvPair.first);
@@ -120,6 +129,10 @@ public class InfoByName {
 
     public ArrayList<Pair<String, InfoByName>> getObjectRelationList() {
         return objectRelation;
+    }
+
+    public ArrayList<Pair<String, String>> getImgProperty() {
+        return imgProperty;
     }
 
     public String getLabel() {

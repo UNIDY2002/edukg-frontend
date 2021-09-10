@@ -2,6 +2,9 @@ package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -16,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
@@ -33,6 +37,10 @@ import com.java.sunxun.utils.Share;
 
 import org.w3c.dom.Text;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +63,7 @@ public class DetailFragment extends Fragment {
     private DetailViewModel viewModel;
     private final ArrayList<Pair<String, String>> shortEntityProperty = new ArrayList<>();
     private final ArrayList<Pair<String, String>> longEntityProperty = new ArrayList<>();
+    private ArrayList<Pair<String, String>> imageProperty = new ArrayList<>();
     private ArrayList<Pair<String, InfoByName>> subjectRelationList = new ArrayList<>();
     private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
 
@@ -219,6 +228,7 @@ public class DetailFragment extends Fragment {
                     ArrayList<Pair<String, String>> entityProperty = cache.getPropertyList();
                     subjectRelationList = cache.getSubjectRelationList();
                     objectRelationList = cache.getObjectRelationList();
+                    imageProperty = cache.getImgProperty();
                     shortEntityProperty.clear();
                     longEntityProperty.clear();
                     for (int i = 0; i < entityProperty.size(); ++i)
@@ -243,6 +253,7 @@ public class DetailFragment extends Fragment {
                     ArrayList<Pair<String, String>> entityProperty = result.getPropertyList();
                     subjectRelationList = result.getSubjectRelationList();
                     objectRelationList = result.getObjectRelationList();
+                    imageProperty = result.getImgProperty();
                     shortEntityProperty.clear();
                     longEntityProperty.clear();
                     for (int i = 0; i < entityProperty.size(); ++i)
@@ -297,6 +308,13 @@ public class DetailFragment extends Fragment {
                         ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, activity.getTheme()));
                         ((TextView) view.findViewById(R.id.relation_head)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
                     }, "*暂无可用的主实体关系。");
+
+                    // 编写图片的 UI
+                    draw(imageProperty, R.layout.item_detail_img, binding.imgList, (data, view) -> {
+                        ImageView imgView = new ImageView(activity);
+                        Glide.with(DetailFragment.this.getActivity()).load(data.second).into(imgView);
+                        binding.imgList.addView(imgView);
+                    }, "*暂无相关图片。");
                 }
 
                 @Override
