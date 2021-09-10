@@ -34,10 +34,13 @@ public abstract class JsonResponseNetworkHandler extends NetworkHandler<String> 
     public final void onSuccess(String result) {
         JSONObject o = JSON.parseObject(result);
         String code = o.getString("code");
+        String msg = o.getString("msg");
         if (validCode.equals(code)) {
             onJsonSuccess(o);
-        } else {
+        } else if (msg == null) {
             onError(new InvalidCodeException(code));
+        } else {
+            onError(new InvalidCodeException(code, msg));
         }
     }
 

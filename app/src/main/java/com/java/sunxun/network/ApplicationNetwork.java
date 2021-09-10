@@ -113,7 +113,7 @@ public class ApplicationNetwork {
             public void onJsonSuccess(JSONObject o) {
                 String data = o.getString("data");
                 if ("ashitemaru".equals(data)) {
-                    handler.onError(new NullPointerException());
+                    handler.onSuccess(null);
                 } else {
                     handler.onSuccess(data);
                 }

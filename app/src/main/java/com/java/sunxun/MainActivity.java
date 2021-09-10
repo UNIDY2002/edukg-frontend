@@ -133,18 +133,13 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
 
-            ApplicationNetwork.getProfile(new NetworkHandler<String>(this) {
-                @Override
-                public void onSuccess(String result) {
-                    User.currentUser.setAvatar(result);
+            User.addOnAvatarChangedListener(result -> {
+                if (result == null) {
+                    avatarImage.setImageResource(R.drawable.avatar);
+                } else {
                     Glide.with(MainActivity.this)
                             .load(Base64.decode(result, Base64.DEFAULT))
                             .into(avatarImage);
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    e.printStackTrace();
                 }
             });
         }

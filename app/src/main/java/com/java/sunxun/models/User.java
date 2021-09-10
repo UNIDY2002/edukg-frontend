@@ -21,6 +21,8 @@ public class User {
 
     private final static ArrayList<Consumer<String>> onUsernameChangedListeners = new ArrayList<>();
 
+    private final static ArrayList<Consumer<String>> onAvatarChangedListeners = new ArrayList<>();
+
     public final static User VISITOR = new User("visitor", "12345678");
 
     @NonNull
@@ -67,8 +69,20 @@ public class User {
             performLogin(username, password, new NetworkHandler<Boolean>(handler.activity) {
                 @Override
                 public void onSuccess(Boolean result) {
-                    onUsernameChangedListeners.forEach(listener -> listener.accept(username));
-                    handler.onSuccess(currentUser = new User(username, password));
+                    ApplicationNetwork.getProfile(new NetworkHandler<String>(handler.activity) {
+                        @Override
+                        public void onSuccess(@Nullable String result) {
+                            onUsernameChangedListeners.forEach(listener -> listener.accept(username));
+                            onAvatarChangedListeners.forEach(listener -> listener.accept(result));
+                            handler.onSuccess(currentUser = new User(username, password));
+                            currentUser.setAvatar(result);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+
+                        }
+                    });
                 }
 
                 @Override
@@ -107,6 +121,7 @@ public class User {
         currentUser = VISITOR;
         ApplicationNetwork.logout();
         onUsernameChangedListeners.forEach(listener -> listener.accept(VISITOR.username));
+        onAvatarChangedListeners.forEach(listener -> listener.accept(null));
     }
 
     public static boolean isVisitor() {
@@ -115,5 +130,9 @@ public class User {
 
     public static void addOnUsernameChangedListener(Consumer<String> listener) {
         onUsernameChangedListeners.add(listener);
+    }
+
+    public static void addOnAvatarChangedListener(Consumer<String> listener) {
+        onAvatarChangedListeners.add(listener);
     }
 }
