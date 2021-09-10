@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -20,16 +22,14 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
-import com.java.sunxun.models.InfoByName;
-import com.java.sunxun.models.Problem;
-import com.java.sunxun.models.SearchResult;
-import com.java.sunxun.models.Subject;
+import com.java.sunxun.models.*;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
@@ -137,68 +137,59 @@ public class DetailFragment extends Fragment {
                 }
             });
 
-            // 用于展示收藏夹列表的 RecyclerViewAdapter
-            RecyclerViewAdapter<StarFolder> shareFolderListAdapter = new RecyclerViewAdapter<StarFolder>(context, R.layout.item_star_folder, new ArrayList<>()) {
-                @Override
-                public void convert(ViewHolder holder, StarFolder data, int position, List<StarFolder> allData) {
-                    TextView textView = holder.getViewById(R.id.star_folder_name_text);
-                    CheckBox checkBox = holder.getViewById(R.id.star_folder_name_checked);
-                    textView.setText(data.name);
-                    textView.setOnClickListener(v -> checkBox.setChecked(!checkBox.isChecked()));
-                    checkBox.setChecked(data.isStar);
-                    checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                        data.wantToStar = isChecked;
-                        binding.detailSharePopupConfirmButton.setEnabled(allData.stream().anyMatch(starFolder -> starFolder.isStar != starFolder.wantToStar));
-                    });
-                }
-            };
-
-            // 设置收藏文件夹的 RecyclerView
-            binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-            binding.detailSharePopupRecyclerView.setAdapter(shareFolderListAdapter);
-
-            // 设置收藏确认按钮的点击事件
-            binding.detailSharePopupConfirmButton.setOnClickListener(v -> {
-                shareFolderListAdapter.getData().forEach(folder -> {
-                    if (folder.isStar != folder.wantToStar) {
-                        if (folder.wantToStar) {
-                            ApplicationNetwork.star(subject, uri, name, category, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
-                                @Override
-                                public void onSuccess(Boolean result) {
-
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-
-                                }
-                            });
-                        } else {
-                            ApplicationNetwork.unstar(uri, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
-                                @Override
-                                public void onSuccess(Boolean result) {
-
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-
-                                }
-                            });
-                        }
-                    }
-                });
-                viewModel.setStarStatus(shareFolderListAdapter.getData().stream().anyMatch(folder -> folder.wantToStar));
-            });
-
             // 设置收藏按钮的点击事件
             binding.detailStarButton.setOnClickListener(v -> ApplicationNetwork.isStar(uri, new NetworkHandler<List<Pair<String, Boolean>>>(DetailFragment.this) {
                 @Override
                 public void onSuccess(List<Pair<String, Boolean>> starResult) {
+                    // 展示弹窗
                     binding.detailShadow.setVisibility(View.VISIBLE);
                     binding.detailSharePopupContainer.setVisibility(View.VISIBLE);
                     binding.detailSharePopupConfirmButton.setEnabled(false);
-                    shareFolderListAdapter.updateData(starResult.stream().map(result -> new StarFolder(result.first, result.second)).collect(Collectors.toList()));
+
+                    // 设置收藏文件夹的 RecyclerView
+                    StarFolderListAdapter starFolderListAdapter = new StarFolderListAdapter(
+                            starResult.stream().map(result -> new StarFolder(result.first, result.second)).collect(Collectors.toList()),
+                            binding.detailSharePopupConfirmButton
+                    );
+                    binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+                    binding.detailSharePopupRecyclerView.setAdapter(starFolderListAdapter);
+
+                    // 设置收藏新建收藏夹的点击事件
+                    binding.detailSharePopupCreateFolder.setOnClickListener(v -> starFolderListAdapter.setModeToCreateFolder());
+
+                    // 设置收藏确认按钮的点击事件
+                    binding.detailSharePopupConfirmButton.setOnClickListener(v -> {
+                        starFolderListAdapter.getData().forEach(folder -> {
+                            if (folder.isStar != folder.wantToStar) {
+                                if (folder.wantToStar) {
+                                    ApplicationNetwork.star(subject, uri, name, category, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
+                                        @Override
+                                        public void onSuccess(Boolean result) {
+
+                                        }
+
+                                        @Override
+                                        public void onError(Exception e) {
+
+                                        }
+                                    });
+                                } else {
+                                    ApplicationNetwork.unstar(uri, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
+                                        @Override
+                                        public void onSuccess(Boolean result) {
+
+                                        }
+
+                                        @Override
+                                        public void onError(Exception e) {
+
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                        viewModel.setStarStatus(starFolderListAdapter.getData().stream().anyMatch(folder -> folder.wantToStar));
+                    });
                 }
 
                 @Override
@@ -410,7 +401,7 @@ public class DetailFragment extends Fragment {
         binding = null;
     }
 
-    private class StarFolder {
+    private static class StarFolder {
         String name;
         boolean isStar;
         boolean wantToStar;
@@ -418,6 +409,101 @@ public class DetailFragment extends Fragment {
         StarFolder(String name, boolean isStar){
             this.name = name;
             this.isStar = this.wantToStar = isStar;
+        }
+    }
+
+    private class StarFolderListAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
+        private final List<StarFolder> starFolders;
+        private final Button confirmButton;
+        private boolean createFolder = false;
+
+        StarFolderListAdapter(List<StarFolder> starFolders, Button confirmButton) {
+            this.starFolders = starFolders;
+            this.confirmButton = confirmButton;
+        }
+
+        @NonNull
+        @Override
+        public RecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new RecyclerViewAdapter.ViewHolder(LayoutInflater.from(getContext()).inflate(
+                    viewType == 1 ? R.layout.item_star_create_folder : R.layout.item_star_folder, parent, false
+            ));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerViewAdapter.ViewHolder holder, int position) {
+            if (position == starFolders.size()) {
+                EditText editText = holder.getViewById(R.id.star_folder_create_input);
+                Button button = holder.getViewById(R.id.star_folder_create_action);
+                editText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        button.setEnabled(s != null && !s.toString().isEmpty() && !s.toString().equals("默认文件夹") && !s.toString().equals("default"));
+                    }
+                });
+                button.setOnClickListener(v -> {
+                    String folder = editText.toString();
+                    ApplicationNetwork.addFolder(folder, new NetworkHandler<Boolean>(v) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+                            if (result) {
+                                starFolders.add(new StarFolder(folder, false));
+                                createFolder = false;
+                                notifyItemChanged(starFolders.size() - 1);
+                            } else {
+                                Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+            } else {
+                StarFolder data = starFolders.get(position);
+                TextView textView = holder.getViewById(R.id.star_folder_name_text);
+                CheckBox checkBox = holder.getViewById(R.id.star_folder_name_checked);
+                textView.setText(data.name);
+                textView.setOnClickListener(v -> checkBox.setChecked(!checkBox.isChecked()));
+                checkBox.setChecked(data.isStar);
+                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    data.wantToStar = isChecked;
+                    confirmButton.setEnabled(starFolders.stream().anyMatch(starFolder -> starFolder.isStar != starFolder.wantToStar));
+                });
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return starFolders.size() + (createFolder ? 1 : 0);
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return position == starFolders.size() ? 1 : 0;
+        }
+
+        public List<StarFolder> getData() {
+            return this.starFolders;
+        }
+
+        public void setModeToCreateFolder(){
+            if (!createFolder) {
+                createFolder = true;
+                notifyItemInserted(starFolders.size());
+            }
         }
     }
 }

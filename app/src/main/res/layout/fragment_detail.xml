@@ -228,20 +228,33 @@
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/detail_share_popup_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:layout_marginVertical="30dp"/>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="10dp"/>
+
+        <TextView
+                android:id="@+id/detail_share_popup_create_folder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_folder"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:padding="8dp"
+                android:layout_margin="10dp"
+                android:gravity="center_vertical"
+                android:background="@drawable/shape_grey_border"
+                app:drawableLeftCompat="@drawable/ic_add"/>
 
         <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/light_grey"
-                android:layout_marginVertical="30dp"/>
+                android:background="@color/grey"/>
 
         <com.google.android.material.button.MaterialButton
                 android:id="@+id/detail_share_popup_confirm_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:text="@string/confirm"
                 android:layout_margin="20dp"
                 android:enabled="false"/>

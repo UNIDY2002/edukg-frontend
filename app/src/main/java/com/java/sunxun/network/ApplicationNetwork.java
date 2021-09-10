@@ -291,6 +291,31 @@ public class ApplicationNetwork {
         });
     }
 
+    private static void modifyFolder(@NonNull String url, @NonNull String folder, NetworkHandler<Boolean> handler) {
+        JSONObject params = new JSONObject();
+        params.put("id", id);
+        params.put("folder", folder);
+        BaseNetwork.fetch(url, params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
+            @Override
+            public void onJsonSuccess(JSONObject o) {
+                handler.onSuccess("0".equals(o.getString("data")));
+            }
+
+            @Override
+            public void onError(Exception e) {
+                handler.onError(e);
+            }
+        });
+    }
+
+    public static void addFolder(@NonNull String folder, NetworkHandler<Boolean> handler) {
+        modifyFolder(DATABASE_URL + "/api/addFolder", folder, handler);
+    }
+
+    public static void removeFolder(@NonNull String folder, NetworkHandler<Boolean> handler) {
+        modifyFolder(DATABASE_URL + "/api/removeFolder", folder, handler);
+    }
+
     public static void addHistory(Subject subject, String uri, String name, String category, @Nullable Boolean hasProblem, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
         params.put("id", id);

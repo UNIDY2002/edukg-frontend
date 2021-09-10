@@ -62,6 +62,23 @@
                     android:textSize="16sp"
                     app:drawableRightCompat="@drawable/ic_expand_more"/>
         </LinearLayout>
+
+        <Button
+                android:id="@+id/star_delete_folder_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                app:icon="@drawable/ic_delete"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:visibility="gone"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView

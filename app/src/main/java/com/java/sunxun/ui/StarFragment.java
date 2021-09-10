@@ -122,6 +122,7 @@ public class StarFragment extends Fragment {
                     folderName = menuItem.getTitle().toString();
                     if (folderName.equals(getString(R.string.default_folder))) folderName = null;
                     updateStarList(adapter);
+                    binding.starDeleteFolderButton.setVisibility(folderName == null ? View.GONE : View.VISIBLE);
                     return true;
                 });
                 popupMenu.show();
@@ -152,6 +153,24 @@ public class StarFragment extends Fragment {
         binding.starListRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.starListRecyclerView.setAdapter(adapter);
         updateStarList(adapter);
+
+        binding.starDeleteFolderButton.setOnClickListener(v -> ApplicationNetwork.removeFolder(folderName, new NetworkHandler<Boolean>(StarFragment.this) {
+            @Override
+            public void onSuccess(Boolean result) {
+                if (result) {
+                    folderName = null;
+                    updateStarList(adapter);
+                    binding.starDeleteFolderButton.setVisibility(View.GONE);
+                } else {
+                    Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+            }
+        }));
 
         return binding.getRoot();
     }
