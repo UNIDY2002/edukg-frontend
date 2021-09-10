@@ -46,7 +46,7 @@ public class UserTestRecommendedFragment extends Fragment {
         binding.recommendedRecyclerView.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(binding.recommendedRecyclerView);
 
-        ApplicationNetwork.getRecommendedProblem(10, new NetworkHandler<RecommendedProblem>(this) {
+        ApplicationNetwork.getRecommendedProblem(5, new NetworkHandler<RecommendedProblem>(this) {
             @Override
             public void onSuccess(RecommendedProblem recommendedProblem) {
                 adapter.addProblem(recommendedProblem);
@@ -140,7 +140,7 @@ public class UserTestRecommendedFragment extends Fragment {
                     });
                     problem.loading = true;
                     holder.loading.setVisibility(View.VISIBLE);
-                    ApplicationNetwork.getRecommendedProblem(10, new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
+                    ApplicationNetwork.getRecommendedProblem(5, new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
                         @Override
                         public void onSuccess(RecommendedProblem result) {
                             problem.loading = false;

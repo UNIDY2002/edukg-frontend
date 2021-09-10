@@ -6,8 +6,6 @@ import androidx.annotation.Nullable;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.java.sunxun.R;
-import com.java.sunxun.exceptions.DuplicatedStarException;
-import com.java.sunxun.exceptions.DuplicatedUnstarException;
 import com.java.sunxun.exceptions.RetryTimeExceededException;
 import com.java.sunxun.models.*;
 
@@ -145,64 +143,19 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void star(Subject subject, String uri, String name, String category, @Nullable String folder, NetworkHandler<Boolean> handler) {
+    public static void star(Subject subject, String uri, String name, String category, List<String> folderStar, List<String> folderUnstar, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
         params.put("id", id);
         params.put("course", subject.toString());
         params.put("uri", uri);
         params.put("label", name);
         params.put("category", category);
-        if (folder != null) params.put("folder", folder);
+        params.put("folderStar", folderStar);
+        params.put("folderUnstar", folderUnstar);
         BaseNetwork.fetch(DATABASE_URL + "/api/star", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
-                String data = o.getString("data");
-                switch (data) {
-                    case "0": {
-                        handler.onSuccess(true);
-                        break;
-                    }
-                    case "1": {
-                        handler.onError(new DuplicatedStarException());
-                        break;
-                    }
-                    default: {
-                        handler.onError(new RuntimeException());
-                        break;
-                    }
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                handler.onError(e);
-            }
-        });
-    }
-
-    public static void unstar(String uri, @Nullable String folder, NetworkHandler<Boolean> handler) {
-        JSONObject params = new JSONObject();
-        params.put("id", id);
-        params.put("uri", uri);
-        if (folder != null) params.put("folder", folder);
-        BaseNetwork.fetch(DATABASE_URL + "/api/unstar", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
-            @Override
-            public void onJsonSuccess(JSONObject o) {
-                String data = o.getString("data");
-                switch (data) {
-                    case "0": {
-                        handler.onSuccess(true);
-                        break;
-                    }
-                    case "1": {
-                        handler.onError(new DuplicatedUnstarException());
-                        break;
-                    }
-                    default: {
-                        handler.onError(new RuntimeException());
-                        break;
-                    }
-                }
+                handler.onSuccess("0".equals(o.getString("data")));
             }
 
             @Override
@@ -392,7 +345,7 @@ public class ApplicationNetwork {
     public static void getRecommendedProblem(int retryTimes, NetworkHandler<RecommendedProblem> handler) {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
-        params.put("onlyNew", String.valueOf(retryTimes < 5 ? 1 : 0));
+        params.put("onlyNew", String.valueOf(retryTimes < 3 ? 1 : 0));
         BaseNetwork.fetch(DATABASE_URL + "/api/getRecommendedProblem", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {

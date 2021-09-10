@@ -71,33 +71,26 @@ public class StarFragment extends Fragment {
                 ImageView star = holder.getViewById(R.id.star_entity_star);
                 star.setImageResource(data.isStar ? R.drawable.ic_star : R.drawable.ic_star_border);
                 star.setOnClickListener(view -> {
-                    if (!data.isStar) {
-                        ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, folderName, new NetworkHandler<Boolean>(view) {
-                            @Override
-                            public void onSuccess(Boolean result) {
-                                data.isStar = true;
-                                notifyItemChanged(position);
-                            }
-
-                            @Override
-                            public void onError(Exception e) {
-                                Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
-                            }
-                        });
+                    List<String> folderStar = new ArrayList<>();
+                    List<String> folderUnstar = new ArrayList<>();
+                    String folderNameUpload = folderName == null ? "default" : folderName;
+                    if (data.isStar) {
+                        folderUnstar.add(folderNameUpload);
                     } else {
-                        ApplicationNetwork.unstar(data.uri, folderName, new NetworkHandler<Boolean>(view) {
-                            @Override
-                            public void onSuccess(Boolean result) {
-                                data.isStar = false;
-                                notifyItemChanged(position);
-                            }
-
-                            @Override
-                            public void onError(Exception e) {
-                                Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
-                            }
-                        });
+                        folderStar.add(folderNameUpload);
                     }
+                    ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, folderStar, folderUnstar, new NetworkHandler<Boolean>(view) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+                            data.isStar = true;
+                            notifyItemChanged(position);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_LONG).show();
+                        }
+                    });
                 });
                 holder.getViewById(R.id.star_entity_container).setOnClickListener(view -> {
                     Bundle bundle = new Bundle();

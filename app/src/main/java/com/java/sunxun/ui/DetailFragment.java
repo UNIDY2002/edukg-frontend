@@ -235,36 +235,30 @@ public class DetailFragment extends Fragment {
 
                     // 设置收藏确认按钮的点击事件
                     binding.detailSharePopupConfirmButton.setOnClickListener(v -> {
+                        List<String> folderStar = new ArrayList<>();
+                        List<String> folderUnstar = new ArrayList<>();
                         starFolderListAdapter.getData().forEach(folder -> {
                             if (folder.isStar != folder.wantToStar) {
+                                String folderNameUpload = folder.name.equals(getString(R.string.default_folder)) ? "default" : folder.name;
                                 if (folder.wantToStar) {
-                                    ApplicationNetwork.star(subject, uri, name, category, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
-                                        @Override
-                                        public void onSuccess(Boolean result) {
-
-                                        }
-
-                                        @Override
-                                        public void onError(Exception e) {
-
-                                        }
-                                    });
+                                    folderStar.add(folderNameUpload);
                                 } else {
-                                    ApplicationNetwork.unstar(uri, folder.name.equals(getString(R.string.default_folder)) ? null : folder.name, new NetworkHandler<Boolean>(v) {
-                                        @Override
-                                        public void onSuccess(Boolean result) {
-
-                                        }
-
-                                        @Override
-                                        public void onError(Exception e) {
-
-                                        }
-                                    });
+                                    folderUnstar.add(folderNameUpload);
                                 }
                             }
                         });
-                        viewModel.setStarStatus(starFolderListAdapter.getData().stream().anyMatch(folder -> folder.wantToStar));
+                        ApplicationNetwork.star(subject, uri, name, category, folderStar, folderUnstar, new NetworkHandler<Boolean>(v) {
+                            @Override
+                            public void onSuccess(Boolean result) {
+                                viewModel.setStarStatus(starFolderListAdapter.getData().stream().anyMatch(folder -> folder.wantToStar));
+                                binding.detailShadow.callOnClick();
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+
+                            }
+                        });
                     });
                 }
 
