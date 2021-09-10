@@ -57,6 +57,9 @@ public class DetailFragment extends Fragment {
     private ArrayList<Pair<String, InfoByName>> subjectRelationList = new ArrayList<>();
     private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
 
+    private boolean propsRenderOver = false;
+    private boolean relationsRenderOver = false;
+
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
 
     /**
@@ -84,6 +87,7 @@ public class DetailFragment extends Fragment {
     }
 
     private void drawUI(InfoByName info, boolean isCache, Subject subject) {
+
         ArrayList<Pair<String, String>> entityProperty = info.getPropertyList();
         subjectRelationList = info.getSubjectRelationList();
         objectRelationList = info.getObjectRelationList();
@@ -94,66 +98,77 @@ public class DetailFragment extends Fragment {
             (entityProperty.get(i).second.length() > 30 ? longEntityProperty : shortEntityProperty)
                     .add(entityProperty.get(i));
 
-        // 编写属性列表的 UI
-        draw(shortEntityProperty, R.layout.item_detail_property, binding.propertyList, (data, view) -> {
-            ((TextView) view.findViewById(R.id.property_key)).setText(data.first);
-            ((TextView) view.findViewById(R.id.property_val)).setText(data.second);
-        }, "*暂无可使用的属性。");
+        if (!propsRenderOver) {
+            // 编写属性列表的 UI
+            draw(shortEntityProperty, R.layout.item_detail_property, binding.propertyList, (data, view) -> {
+                ((TextView) view.findViewById(R.id.property_key)).setText(data.first);
+                ((TextView) view.findViewById(R.id.property_val)).setText(data.second);
+            }, "*暂无可使用的属性。");
 
-        // 编写知识卡片的 UI
-        draw(longEntityProperty, R.layout.item_detail_long_property, binding.longPropertyList, (data, view) -> {
-            ((TextView) view.findViewById(R.id.long_property_key)).setText(data.first);
-            ((TextView) view.findViewById(R.id.long_property_val)).setText(data.second);
-        }, "");
+            // 编写知识卡片的 UI
+            draw(longEntityProperty, R.layout.item_detail_long_property, binding.longPropertyList, (data, view) -> {
+                ((TextView) view.findViewById(R.id.long_property_key)).setText(data.first);
+                ((TextView) view.findViewById(R.id.long_property_val)).setText(data.second);
+            }, "");
+
+            propsRenderOver = true;
+        }
 
         // 编写实体关系的 UI
-        BiConsumer<String, View> navToNeighbor = (label, v) -> PlatformNetwork.searchInstance(subject, label, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
-            @Override
-            public void onSuccess(ArrayList<SearchResult> result) {
-                if (result.size() == 0) {
-                    Snackbar.make(v, R.string.do_not_support_linking, Snackbar.LENGTH_SHORT).show();
-                    return;
+        if (!isCache && !relationsRenderOver) {
+            BiConsumer<String, View> navToNeighbor = (label, v) -> PlatformNetwork.searchInstance(subject, label, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
+                @Override
+                public void onSuccess(ArrayList<SearchResult> result) {
+                    if (result.size() == 0) {
+                        Snackbar.make(v, R.string.do_not_support_linking, Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
+                    SearchResult res = result.get(0);
+                    Bundle mBundle = new Bundle();
+                    mBundle.putString("name", res.getLabel());
+                    mBundle.putString("uri", res.getUri());
+                    mBundle.putString("category", res.getCategory());
+                    mBundle.putInt("subject", subject.ordinal());
+                    NavHostFragment.findNavController(DetailFragment.this).navigate(R.id.nav_detail, mBundle);
                 }
-                SearchResult res = result.get(0);
-                Bundle mBundle = new Bundle();
-                mBundle.putString("name", res.getLabel());
-                mBundle.putString("uri", res.getUri());
-                mBundle.putString("category", res.getCategory());
-                mBundle.putInt("subject", subject.ordinal());
-                NavHostFragment.findNavController(DetailFragment.this).navigate(R.id.nav_detail, mBundle);
-            }
 
-            @Override
-            public void onError(Exception e) {
-                e.printStackTrace();
-            }
-        });
-        draw(objectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
-            ((TextView) view.findViewById(R.id.relation_head)).setText("【当前实体】");
-            ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
-            ((TextView) view.findViewById(R.id.relation_target)).setText(data.second.getLabel());
-            ((TextView) view.findViewById(R.id.relation_target)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
-            if (!isCache) view.findViewById(R.id.relation_target).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
-        }, "*暂无可用的从实体关系。");
-        draw(subjectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
-            ((TextView) view.findViewById(R.id.relation_target)).setText("【当前实体】");
-            ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
-            ((TextView) view.findViewById(R.id.relation_head)).setText(data.second.getLabel());
-            ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
-            if (!isCache) view.findViewById(R.id.relation_head).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
-        }, "*暂无可用的主实体关系。");
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            draw(objectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
+                ((TextView) view.findViewById(R.id.relation_head)).setText("【当前实体】");
+                ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
+                ((TextView) view.findViewById(R.id.relation_target)).setText(data.second.getLabel());
+                ((TextView) view.findViewById(R.id.relation_target)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
+                view.findViewById(R.id.relation_target).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+            }, "*暂无可用的从实体关系。");
+            draw(subjectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
+                ((TextView) view.findViewById(R.id.relation_target)).setText("【当前实体】");
+                ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
+                ((TextView) view.findViewById(R.id.relation_head)).setText(data.second.getLabel());
+                ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
+                view.findViewById(R.id.relation_head).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+            }, "*暂无可用的主实体关系。");
+
+            relationsRenderOver = true;
+        }
 
         // 编写图片的 UI
-        if (isCache) return;
-        draw(imageProperty, R.layout.item_detail_img, binding.imgList, (data, view) -> {
-            ImageView imgView = new ImageView(DetailFragment.this.getActivity());
-            Glide.with(DetailFragment.this.getActivity()).load(data.second).into(imgView);
-            binding.imgList.addView(imgView);
-        }, "*暂无相关图片。");
+        if (!isCache) {
+            draw(imageProperty, R.layout.item_detail_img, binding.imgList, (data, view) -> {
+                ImageView imgView = new ImageView(DetailFragment.this.getActivity());
+                Glide.with(DetailFragment.this.getActivity()).load(data.second).into(imgView);
+                binding.imgList.addView(imgView);
+            }, "*暂无相关图片。");
+        }
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        propsRenderOver = false;
+        relationsRenderOver = false;
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         binding = FragmentDetailBinding.inflate(inflater, container, false);
         binding.detailReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
