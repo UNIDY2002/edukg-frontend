@@ -177,10 +177,9 @@ public class ApplicationNetwork {
                 for (int i = 0; i < folders.size(); i++) {
                     JSONObject item = folders.getJSONObject(i);
                     String name = item.getString("name");
-                    result.add(new Pair<>(
-                            "default".equals(name) ? handler.activity.getString(R.string.default_folder) : name,
-                            item.getIntValue("isStar") == 1
-                    ));
+                    String defaultFolderName = handler.activity.getString(R.string.default_folder);
+                    result.add(new Pair<>("default".equals(name) ? defaultFolderName : name, item.getIntValue("isStar") == 1));
+                    result.sort((o1, o2) -> o1.first.equals(defaultFolderName) ? -1 : o2.first.equals(defaultFolderName) ? 1 : 0);
                 }
                 handler.onSuccess(result);
             }

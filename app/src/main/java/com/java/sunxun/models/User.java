@@ -80,7 +80,7 @@ public class User {
 
                         @Override
                         public void onError(Exception e) {
-
+                            handler.onError(e);
                         }
                     });
                 }
