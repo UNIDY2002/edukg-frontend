@@ -172,21 +172,17 @@ public class ApplicationNetwork {
         BaseNetwork.fetch(DATABASE_URL + "/api/isStar", params, BaseNetwork.Method.GET, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
-                if ("0".equals(o.getString("data"))) {
-                    handler.onSuccess(new ArrayList<>());
-                } else {
-                    List<Pair<String, Boolean>> result = new ArrayList<>();
-                    JSONArray folders = o.getJSONArray("folders");
-                    for (int i = 0; i < folders.size(); i++) {
-                        JSONObject item = folders.getJSONObject(i);
-                        String name = item.getString("name");
-                        result.add(new Pair<>(
-                                "default".equals(name) ? handler.activity.getString(R.string.default_folder) : name,
-                                item.getIntValue("isStar") == 1
-                        ));
-                    }
-                    handler.onSuccess(result);
+                List<Pair<String, Boolean>> result = new ArrayList<>();
+                JSONArray folders = o.getJSONArray("folder");
+                for (int i = 0; i < folders.size(); i++) {
+                    JSONObject item = folders.getJSONObject(i);
+                    String name = item.getString("name");
+                    result.add(new Pair<>(
+                            "default".equals(name) ? handler.activity.getString(R.string.default_folder) : name,
+                            item.getIntValue("isStar") == 1
+                    ));
                 }
+                handler.onSuccess(result);
             }
 
             @Override

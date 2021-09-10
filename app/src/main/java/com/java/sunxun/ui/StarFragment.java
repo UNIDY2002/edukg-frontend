@@ -154,6 +154,7 @@ public class StarFragment extends Fragment {
                     folderName = null;
                     updateStarList(adapter);
                     binding.starDeleteFolderButton.setVisibility(View.GONE);
+                    binding.starCategoryText.setText(R.string.default_folder);
                 } else {
                     Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
                 }

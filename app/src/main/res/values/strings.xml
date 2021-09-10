@@ -96,6 +96,7 @@
     <string name="share">分享</string>
     <string name="next_problem">下一题</string>
     <string name="see_result">查看结果</string>
+    <string name="add_folder_error">新建收藏夹失败。</string>
     <string name="network_error">网络异常，请稍后重试。</string>
     <string name="customize_subject">自定义要展示的科目</string>
     <string name="confirm_settings">确认设置</string>

@@ -172,7 +172,7 @@ public class DetailFragment extends Fragment {
             ApplicationNetwork.isStar(uri, new NetworkHandler<List<Pair<String, Boolean>>>(this) {
                 @Override
                 public void onSuccess(List<Pair<String, Boolean>> result) {
-                    viewModel.setStarStatus(!result.isEmpty());
+                    viewModel.setStarStatus(result.stream().anyMatch(folder -> folder.second));
                 }
 
                 @Override
@@ -193,7 +193,8 @@ public class DetailFragment extends Fragment {
                     // 设置收藏文件夹的 RecyclerView
                     StarFolderListAdapter starFolderListAdapter = new StarFolderListAdapter(
                             starResult.stream().map(result -> new StarFolder(result.first, result.second)).collect(Collectors.toList()),
-                            binding.detailSharePopupConfirmButton
+                            binding.detailSharePopupConfirmButton,
+                            binding.detailSharePopupRecyclerView
                     );
                     binding.detailSharePopupRecyclerView.setLayoutManager(new LinearLayoutManager(context));
                     binding.detailSharePopupRecyclerView.setAdapter(starFolderListAdapter);
@@ -399,10 +400,12 @@ public class DetailFragment extends Fragment {
         private final List<StarFolder> starFolders;
         private final Button confirmButton;
         private boolean createFolder = false;
+        private final RecyclerView recyclerView;
 
-        StarFolderListAdapter(List<StarFolder> starFolders, Button confirmButton) {
+        StarFolderListAdapter(List<StarFolder> starFolders, Button confirmButton, RecyclerView recyclerView) {
             this.starFolders = starFolders;
             this.confirmButton = confirmButton;
+            this.recyclerView = recyclerView;
         }
 
         @NonNull
@@ -435,7 +438,7 @@ public class DetailFragment extends Fragment {
                     }
                 });
                 button.setOnClickListener(v -> {
-                    String folder = editText.toString();
+                    String folder = editText.getText().toString();
                     ApplicationNetwork.addFolder(folder, new NetworkHandler<Boolean>(v) {
                         @Override
                         public void onSuccess(Boolean result) {
@@ -444,7 +447,7 @@ public class DetailFragment extends Fragment {
                                 createFolder = false;
                                 notifyItemChanged(starFolders.size() - 1);
                             } else {
-                                Snackbar.make(v, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+                                Snackbar.make(v, R.string.add_folder_error, Snackbar.LENGTH_SHORT).show();
                             }
                         }
 
@@ -486,6 +489,7 @@ public class DetailFragment extends Fragment {
             if (!createFolder) {
                 createFolder = true;
                 notifyItemInserted(starFolders.size());
+                recyclerView.scrollToPosition(starFolders.size());
             }
         }
     }
