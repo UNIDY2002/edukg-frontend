@@ -38,7 +38,7 @@ public class StarFragment extends Fragment {
     private final List<StarItem> starList = new ArrayList<>();
 
     private void updateStarList(RecyclerViewAdapter<StarItem> adapter) {
-        ApplicationNetwork.getStarList(new NetworkHandler<ArrayList<Star>>(this) {
+        ApplicationNetwork.getStarList(folderName, new NetworkHandler<ArrayList<Star>>(this) {
             @Override
             public void onSuccess(ArrayList<Star> result) {
                 starList.clear();
@@ -65,14 +65,14 @@ public class StarFragment extends Fragment {
 
         RecyclerViewAdapter<StarItem> adapter = new RecyclerViewAdapter<StarItem>(getContext(), R.layout.item_star_entity, starList) {
             @Override
-            public void convert(ViewHolder holder, StarItem data, int position) {
+            public void convert(ViewHolder holder, StarItem data, int position, List<StarItem> allData) {
                 ((TextView) holder.getViewById(R.id.star_entity_name)).setText(getString(R.string.dash_template, data.subject.toName(getContext()), data.name));
                 ((TextView) holder.getViewById(R.id.star_entity_category)).setText(data.category);
                 ImageView star = holder.getViewById(R.id.star_entity_star);
                 star.setImageResource(data.isStar ? R.drawable.ic_star : R.drawable.ic_star_border);
                 star.setOnClickListener(view -> {
                     if (!data.isStar) {
-                        ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, new NetworkHandler<Boolean>(view) {
+                        ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, folderName, new NetworkHandler<Boolean>(view) {
                             @Override
                             public void onSuccess(Boolean result) {
                                 data.isStar = true;
@@ -85,7 +85,7 @@ public class StarFragment extends Fragment {
                             }
                         });
                     } else {
-                        ApplicationNetwork.unstar(data.uri, new NetworkHandler<Boolean>(view) {
+                        ApplicationNetwork.unstar(data.uri, folderName, new NetworkHandler<Boolean>(view) {
                             @Override
                             public void onSuccess(Boolean result) {
                                 data.isStar = false;
@@ -111,20 +111,27 @@ public class StarFragment extends Fragment {
         };
 
         binding.starReturnIcon.setOnClickListener(view -> NavHostFragment.findNavController(this).navigateUp());
-        binding.starCategoryText.setOnClickListener(view -> {
-            PopupMenu popupMenu = new PopupMenu(getContext(), view);
-            Menu menu = popupMenu.getMenu();
-            ArrayList<String> folders = new ArrayList<>();
-            folders.add(getString(R.string.default_folder));
-            folders.forEach(menu::add);
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
-                binding.starCategoryText.setText(menuItem.getTitle());
-                folderName = menuItem.getTitle().toString();
-                updateStarList(adapter);
-                return true;
-            });
-            popupMenu.show();
-        });
+        binding.starCategoryText.setOnClickListener(view -> ApplicationNetwork.getFolderList(new NetworkHandler<List<String>>(StarFragment.this) {
+            @Override
+            public void onSuccess(List<String> folderList) {
+                PopupMenu popupMenu = new PopupMenu(getContext(), view);
+                Menu menu = popupMenu.getMenu();
+                folderList.forEach(menu::add);
+                popupMenu.setOnMenuItemClickListener(menuItem -> {
+                    binding.starCategoryText.setText(menuItem.getTitle());
+                    folderName = menuItem.getTitle().toString();
+                    if (folderName.equals(getString(R.string.default_folder))) folderName = null;
+                    updateStarList(adapter);
+                    return true;
+                });
+                popupMenu.show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Snackbar.make(view, R.string.network_error, Snackbar.LENGTH_SHORT).show();
+            }
+        }));
         if (folderName != null) binding.starCategoryText.setText(folderName);
 
         binding.starSubjectText.setOnClickListener(view -> {

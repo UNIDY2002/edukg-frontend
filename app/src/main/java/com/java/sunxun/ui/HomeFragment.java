@@ -73,7 +73,7 @@ public class HomeFragment extends Fragment {
                 HomeFragment.this.getActivity(), R.layout.item_home_entity, baseEntities
         ) {
             @Override
-            public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data, int position) {
+            public void convert(RecyclerViewAdapter.ViewHolder holder, Entity data, int position, List<Entity> allData) {
                 ((TextView) holder.getViewById(R.id.entity_name)).setText(data.getLabel());
                 ((TextView) holder.getViewById(R.id.entity_category)).setText(data.getCategory());
                 holder.getViewById(R.id.forward).setOnClickListener(v -> {
