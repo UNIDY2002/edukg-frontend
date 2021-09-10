@@ -67,6 +67,8 @@ public class DetailFragment extends Fragment {
     private ArrayList<Pair<String, InfoByName>> subjectRelationList = new ArrayList<>();
     private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
 
+    private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
+
     private int optionChosen = -1;
 
     /**
@@ -341,25 +343,41 @@ public class DetailFragment extends Fragment {
                     // 随机渲染一个试题
                     Problem problem = result.get(new Random().nextInt(result.size()));
                     @SuppressLint("InflateParams")
-                    View view = LayoutInflater.from(DetailFragment.this.getActivity()).inflate(R.layout.item_detail_problem, null);
-                    ((TextView) view.findViewById(R.id.problem_text)).setText(problem.getQuestion());
+                    View problemContainer = LayoutInflater.from(DetailFragment.this.getActivity()).inflate(R.layout.item_detail_problem, null);
+                    ((TextView) problemContainer.findViewById(R.id.detail_problem_question)).setText(problem.getQuestion());
+                    LinearLayout optionContainer = problemContainer.findViewById(R.id.detail_problem_options);
 
-                    Pair<String[], Integer> options = problem.genRandomOptions(26);
+                    Pair<String[], Integer> options = problem.genRandomOptions(alphabet.length);
                     for (int i = 0; i < options.first.length; ++i) {
-                        RadioButton btn = new RadioButton(DetailFragment.this.getActivity());
-                        btn.setText(options.first[i]);
-                        btn.setId(i);
-                        ((RadioGroup) view.findViewById(R.id.button_options)).addView(btn);
-                    }
-                    ((RadioGroup) view.findViewById(R.id.button_options)).setOnCheckedChangeListener((group, checkedId) -> {
-                        optionChosen = checkedId;
-                    });
-                    view.findViewById(R.id.confirm_button).setOnClickListener(v -> {
-                        if (optionChosen == -1) Snackbar.make(v, "您没有选择任何选项。", Snackbar.LENGTH_SHORT).show();
-                        else postProblemRes(name, uri, optionChosen == options.second, v);
-                    });
+                        String option = options.first[i];
+                        @SuppressLint("InflateParams")
+                        View view = getLayoutInflater().inflate(R.layout.item_user_test_option, null);
+                        TextView textView = view.findViewById(R.id.user_test_option_text);
+                        String optionText = getString(R.string.user_test_option, alphabet[i], option);
+                        textView.setText(optionText);
+                        final int j = i;
+                        view.setOnClickListener(v -> {
+                            for (int k = 0; k < optionContainer.getChildCount(); k++) {
+                                optionContainer.getChildAt(k).setEnabled(false);
+                            }
+                            textView.setTextColor(getResources().getColor(R.color.red, null));
+                            ((TextView) optionContainer.getChildAt(options.second).findViewById(R.id.user_test_option_text)).setTextColor(getResources().getColor(R.color.green, null));
+                            textView.setTextColor(getResources().getColor((j == options.second ? R.color.green : R.color.red), null));
+                            ApplicationNetwork.uploadTestResult(uri, name, j == options.second, new NetworkHandler<Boolean>(DetailFragment.this) {
+                                @Override
+                                public void onSuccess(Boolean result) {
 
-                    binding.problemList.addView(view);
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+
+                                }
+                            });
+                        });
+                        optionContainer.addView(view);
+                    }
+                    binding.problemList.addView(problemContainer);
                 }
 
                 @Override
