@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -143,17 +144,12 @@ public class DetailFragment extends Fragment {
         }, "*暂无可用的主实体关系。");
 
         // 编写图片的 UI
-        if (!isCache) {
-            draw(imageProperty, R.layout.item_detail_img, binding.imgList, (data, view) -> {
-                ImageView imgView = new ImageView(DetailFragment.this.getActivity());
-                Glide.with(DetailFragment.this.getActivity()).load(data.second).into(imgView);
-                binding.imgList.addView(imgView);
-            }, "*暂无相关图片。");
-        } else {
-            TextView caption = new TextView(DetailFragment.this.getActivity());
-            caption.setText("*暂无相关图片");
-            binding.imgList.addView(caption);
-        }
+        if (isCache) return;
+        draw(imageProperty, R.layout.item_detail_img, binding.imgList, (data, view) -> {
+            ImageView imgView = new ImageView(DetailFragment.this.getActivity());
+            Glide.with(DetailFragment.this.getActivity()).load(data.second).into(imgView);
+            binding.imgList.addView(imgView);
+        }, "*暂无相关图片。");
     }
 
     @Override
@@ -297,11 +293,10 @@ public class DetailFragment extends Fragment {
 
                         }
                     });
-
                     // 提示文字
                     if (result.size() == 0) {
                         TextView caption = new TextView(DetailFragment.this.getActivity());
-                        caption.setText("*暂无相关试题");
+                        caption.setText("*暂无相关试题。");
                         binding.problemList.addView(caption);
                         return;
                     }
@@ -350,7 +345,7 @@ public class DetailFragment extends Fragment {
                 public void onError(Exception e) {
                     // 网络请求失败的时候的提示文字
                     TextView caption = new TextView(DetailFragment.this.getActivity());
-                    caption.setText("*暂无相关试题");
+                    caption.setText("*暂无相关试题。");
                     binding.problemList.addView(caption);
 
                     // 向后端添加访问历史记录
