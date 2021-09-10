@@ -1,18 +1,13 @@
 package com.java.sunxun.models;
 
-import android.util.Log;
 import android.util.Pair;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class InfoByName {
     final public static List<String> blackList = new ArrayList<>(Arrays.asList(
@@ -22,7 +17,7 @@ public class InfoByName {
     final private String label;
     final private ArrayList<Pair<String, InfoByName>> subjectRelation;
     final private ArrayList<Pair<String, InfoByName>> objectRelation;
-    private ArrayList<Pair<String, String>> property;
+    final private ArrayList<Pair<String, String>> property;
     final private ArrayList<Pair<String, String>> imgProperty = new ArrayList<>();
 
     private void filterAndSortProperty() {
@@ -56,7 +51,7 @@ public class InfoByName {
         property.clear();
         // Remember to end the sentence
         for (String key: tmpProperty.keySet()) property.add(new Pair<>(key, tmpProperty.get(key)));
-        property.sort((o1, o2) -> o1.second.length() - o2.second.length());
+        property.sort(Comparator.comparingInt(o -> o.second.length()));
     }
 
     public InfoByName(String label) {

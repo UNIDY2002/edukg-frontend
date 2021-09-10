@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">eduKGInfo</string>
     <string name="home">主页</string>
+    <string name="please_login">您好，请登录。</string>
     <string name="login">登录</string>
     <string name="history_record">历史记录</string>
     <string name="qa">问答</string>

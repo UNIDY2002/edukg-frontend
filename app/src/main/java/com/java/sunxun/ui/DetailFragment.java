@@ -2,13 +2,9 @@ package com.java.sunxun.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,34 +16,27 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import com.bumptech.glide.Glide;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.components.RecyclerViewAdapter;
 import com.java.sunxun.dao.DetailCacheDB;
 import com.java.sunxun.data.DetailViewModel;
 import com.java.sunxun.databinding.FragmentDetailBinding;
-import com.java.sunxun.models.*;
+import com.java.sunxun.models.InfoByName;
+import com.java.sunxun.models.Problem;
+import com.java.sunxun.models.SearchResult;
+import com.java.sunxun.models.Subject;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.network.PlatformNetwork;
 import com.java.sunxun.utils.Share;
 
-import org.w3c.dom.Text;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -68,8 +57,6 @@ public class DetailFragment extends Fragment {
     private ArrayList<Pair<String, InfoByName>> objectRelationList = new ArrayList<>();
 
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"};
-
-    private int optionChosen = -1;
 
     /**
      * 用于根据给定数据绘制列表的函数
@@ -145,14 +132,14 @@ public class DetailFragment extends Fragment {
             ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
             ((TextView) view.findViewById(R.id.relation_target)).setText(data.second.getLabel());
             ((TextView) view.findViewById(R.id.relation_target)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
-            if (!isCache) ((TextView) view.findViewById(R.id.relation_target)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+            if (!isCache) view.findViewById(R.id.relation_target).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
         }, "*暂无可用的从实体关系。");
         draw(subjectRelationList, R.layout.item_detail_relation, binding.relationList, (data, view) -> {
             ((TextView) view.findViewById(R.id.relation_target)).setText("【当前实体】");
             ((TextView) view.findViewById(R.id.relation_name)).setText(data.first);
             ((TextView) view.findViewById(R.id.relation_head)).setText(data.second.getLabel());
             ((TextView) view.findViewById(R.id.relation_head)).setTextColor(getResources().getColor(R.color.teal_700, DetailFragment.this.getActivity().getTheme()));
-            if (!isCache) ((TextView) view.findViewById(R.id.relation_head)).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
+            if (!isCache) view.findViewById(R.id.relation_head).setOnClickListener(v -> navToNeighbor.accept(data.second.getLabel(), v));
         }, "*暂无可用的主实体关系。");
 
         // 编写图片的 UI
@@ -167,21 +154,6 @@ public class DetailFragment extends Fragment {
             caption.setText("*暂无相关图片");
             binding.imgList.addView(caption);
         }
-    }
-
-    private void postProblemRes(String label, String uri, boolean isCorrect, View v) {
-        Snackbar.make(v, isCorrect ? "您作答正确！" : "您作答错误。", Snackbar.LENGTH_LONG).show();
-        ApplicationNetwork.uploadTestResult(label, uri, isCorrect, new NetworkHandler<Boolean>(this) {
-            @Override
-            public void onSuccess(Boolean result) {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        });
     }
 
     @Override

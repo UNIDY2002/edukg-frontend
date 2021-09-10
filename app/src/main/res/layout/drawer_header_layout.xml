@@ -17,6 +17,8 @@
             android:id="@+id/drawer_username_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="21sp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/black"
             android:lineSpacingMultiplier="1.2"/>
 </LinearLayout>

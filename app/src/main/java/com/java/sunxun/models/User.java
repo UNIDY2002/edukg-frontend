@@ -72,9 +72,9 @@ public class User {
                     ApplicationNetwork.getProfile(new NetworkHandler<String>(handler.activity) {
                         @Override
                         public void onSuccess(@Nullable String result) {
+                            handler.onSuccess(currentUser = new User(username, password));
                             onUsernameChangedListeners.forEach(listener -> listener.accept(username));
                             onAvatarChangedListeners.forEach(listener -> listener.accept(result));
-                            handler.onSuccess(currentUser = new User(username, password));
                             currentUser.setAvatar(result);
                         }
 

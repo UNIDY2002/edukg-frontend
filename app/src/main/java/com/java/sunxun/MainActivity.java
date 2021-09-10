@@ -51,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 设置抽屉顶部用户名，监听用户名改变事件
         TextView drawerUsernameText = binding.navView.getHeaderView(0).findViewById(R.id.drawer_username_text);
-        drawerUsernameText.setText(User.currentUser.getUsername());
-        User.addOnUsernameChangedListener(drawerUsernameText::setText);
+        drawerUsernameText.setText(User.isVisitor() ? getString(R.string.please_login) : User.currentUser.getUsername());
+        User.addOnUsernameChangedListener(name -> drawerUsernameText.setText(User.isVisitor() ? getString(R.string.please_login) : name));
 
         // 绑定导航
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
