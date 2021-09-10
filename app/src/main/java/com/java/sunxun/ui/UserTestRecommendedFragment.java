@@ -26,7 +26,9 @@ import com.java.sunxun.network.NetworkHandler;
 import com.java.sunxun.utils.Share;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class UserTestRecommendedFragment extends Fragment {
 
@@ -78,6 +80,8 @@ public class UserTestRecommendedFragment extends Fragment {
 
     private class UserTestAdapter extends RecyclerView.Adapter<UserTestAdapter.ViewHolder> {
 
+        private final Set<Integer> preloadPositions = new HashSet<>();
+
         private final List<UserProblem> problems = new ArrayList<>();
 
         private class ViewHolder extends RecyclerView.ViewHolder {
@@ -106,6 +110,34 @@ public class UserTestRecommendedFragment extends Fragment {
         public void onBindViewHolder(@NonNull UserTestAdapter.ViewHolder holder, int position) {
             if (problems.isEmpty()) return;
             UserProblem problem = problems.get(position);
+
+            // Preload
+            if (!preloadPositions.contains(position)) {
+                preloadPositions.add(position);
+                ApplicationNetwork.getRecommendedProblem(5, new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
+                    @Override
+                    public void onSuccess(RecommendedProblem result) {
+                        problem.loading = false;
+                        holder.loading.setVisibility(View.GONE);
+                        addProblem(result);
+                        notifyItemChanged(position);
+                        notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        problem.loading = false;
+                        holder.loading.setVisibility(View.GONE);
+                        notifyItemChanged(position);
+                        if (binding != null) {
+                            Snackbar.make(binding.recommendedRecyclerView, R.string.no_more_problem, Snackbar.LENGTH_SHORT).show();
+                        }
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            // Render
             holder.question.setText(getString(R.string.user_test_question, position + 1, problem.question));
             holder.options.removeAllViews();
             for (int i = 0; i < problem.options.length; i++) {
@@ -127,6 +159,7 @@ public class UserTestRecommendedFragment extends Fragment {
                     }
                     problem.selectedId = j;
                     notifyItemChanged(position);
+                    notifyDataSetChanged();
                     ApplicationNetwork.uploadTestResult(problem.uri, problem.label, j == problem.answerId, new NetworkHandler<Boolean>(UserTestRecommendedFragment.this) {
                         @Override
                         public void onSuccess(Boolean result) {
@@ -138,32 +171,12 @@ public class UserTestRecommendedFragment extends Fragment {
 
                         }
                     });
-                    problem.loading = true;
-                    holder.loading.setVisibility(View.VISIBLE);
-                    ApplicationNetwork.getRecommendedProblem(5, new NetworkHandler<RecommendedProblem>(UserTestRecommendedFragment.this) {
-                        @Override
-                        public void onSuccess(RecommendedProblem result) {
-                            problem.loading = false;
-                            holder.loading.setVisibility(View.GONE);
-                            addProblem(result);
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                            problem.loading = false;
-                            holder.loading.setVisibility(View.GONE);
-                            notifyItemChanged(position);
-                            if (binding != null) {
-                                Snackbar.make(binding.recommendedRecyclerView, R.string.network_error, Snackbar.LENGTH_SHORT).show();
-                            }
-                            e.printStackTrace();
-                        }
-                    });
+                    holder.loading.setVisibility(problem.loading ? View.VISIBLE : View.GONE);
                 });
                 holder.options.addView(view);
             }
-            holder.loading.setVisibility(problem.loading ? View.VISIBLE : View.GONE);
-            holder.nextProblem.setVisibility(position == problems.size() - 1 ? View.GONE : View.VISIBLE);
+            holder.loading.setVisibility(problem.loading && problem.selectedId != -1 ? View.VISIBLE : View.GONE);
+            holder.nextProblem.setVisibility(problem.loading || problem.selectedId == -1 ? View.GONE : View.VISIBLE);
             holder.nextProblem.setOnClickListener(v -> {
                 if (binding != null) {
                     RecyclerView.LayoutManager manager = binding.recommendedRecyclerView.getLayoutManager();
@@ -176,7 +189,13 @@ public class UserTestRecommendedFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return Math.max(1, problems.size());
+            if (problems.size() <= 1) {
+                return 1;
+            } else if (problems.get(problems.size() - 2).answerId == -1) {
+                return problems.size() - 1;
+            } else {
+                return problems.size();
+            }
         }
 
         @Override
@@ -209,7 +228,7 @@ public class UserTestRecommendedFragment extends Fragment {
             String[] options;
             int answerId;
             int selectedId = -1;
-            boolean loading = false;
+            boolean loading = true;
 
             UserProblem(String label, String uri, String question, String[] options, int answerId) {
                 this.label = label;
