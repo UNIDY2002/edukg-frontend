@@ -92,7 +92,7 @@
     <string name="user_test_congratulations">恭喜，达到了%s的正确率！</string>
     <string name="user_test_share_template">#eduKGInfo#\n我在 eduKGInfo 里刷到了这道题，大家一起来看看吧！\n\n题目：%s\n\n选项：\n%s</string>
     <string name="user_test_share_all_template">#eduKGInfo#\n我在 eduKGInfo 里刷了 %d 道关于 %s 的题，正确率达到了%s！你也来挑战吧！</string>
-    <string name="detail_share_template">#eduKGInfo#\n实体详情分享模板\n实体名称：%s\n学科：%s\nuri：%s</string>
+    <string name="detail_share_template">#eduKGInfo#\n我今天在 eduKGInfo 里学习了 %s，它是%s学科的知识点，快来和我一起学吧！</string>
     <string name="share">分享</string>
     <string name="next_problem">下一题</string>
     <string name="see_result">查看结果</string>

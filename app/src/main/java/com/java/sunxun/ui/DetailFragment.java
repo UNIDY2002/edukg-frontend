@@ -242,7 +242,7 @@ public class DetailFragment extends Fragment {
             }));
 
             // 设置分享按钮的点击事件
-            binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()), uri)));
+            binding.detailShareButton.setOnClickListener(view -> Share.share(view.getContext(), getString(R.string.detail_share_template, name, subject.toName(view.getContext()))));
 
             // 点击 detailShadow 隐藏收藏遮罩
             binding.detailShadow.setOnClickListener(v -> {
