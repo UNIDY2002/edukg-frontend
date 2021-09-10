@@ -113,9 +113,13 @@ public class HomeFragment extends Fragment {
                     Entity newEntity = new Entity(selectedSubject, o.getString("label"), o.getString("category"), o.getString("uri"));
                     baseEntities.add(newEntity);
                 }
-                binding.entityList.setAdapter(adapter = getLatestAdapter());
-                if (isRefresh) binding.entityListWrapper.finishRefresh();
-                else binding.entityListWrapper.finishLoadMore();
+                if (isRefresh) {
+                    binding.entityList.setAdapter(adapter = getLatestAdapter());
+                    binding.entityListWrapper.finishRefresh();
+                } else {
+                    ((RecyclerViewAdapter<Entity>) binding.entityList.getAdapter()).updateData(baseEntities);
+                    binding.entityListWrapper.finishLoadMore();
+                }
             }
 
             @Override
