@@ -128,19 +128,6 @@ public class DetailFragment extends Fragment {
                 }
             });
 
-            // 向后端添加访问历史记录
-            ApplicationNetwork.addHistory(subject, uri, name, category, new NetworkHandler<Boolean>(this) {
-                @Override
-                public void onSuccess(Boolean result) {
-
-                }
-
-                @Override
-                public void onError(Exception e) {
-
-                }
-            });
-
             // 用于展示收藏夹列表的 RecyclerViewAdapter
             RecyclerViewAdapter<StarFolder> shareFolderListAdapter = new RecyclerViewAdapter<StarFolder>(context, R.layout.item_star_folder, new ArrayList<>()) {
                 @Override
@@ -322,6 +309,19 @@ public class DetailFragment extends Fragment {
             PlatformNetwork.relatedProblems(name, new NetworkHandler<ArrayList<Problem>>(this) {
                 @Override
                 public void onSuccess(ArrayList<Problem> result) {
+                    // 向后端添加访问历史记录
+                    ApplicationNetwork.addHistory(subject, uri, name, category, result.size() > 0, new NetworkHandler<Boolean>(DetailFragment.this) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+
+                        }
+                    });
+
                     // 提示文字
                     if (result.size() == 0) {
                         TextView caption = new TextView(DetailFragment.this.getActivity());
@@ -356,6 +356,18 @@ public class DetailFragment extends Fragment {
 
                 @Override
                 public void onError(Exception e) {
+                    // 向后端添加访问历史记录
+                    ApplicationNetwork.addHistory(subject, uri, name, category, null, new NetworkHandler<Boolean>(DetailFragment.this) {
+                        @Override
+                        public void onSuccess(Boolean result) {
+
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+
+                        }
+                    });
                     e.printStackTrace();
                 }
             });

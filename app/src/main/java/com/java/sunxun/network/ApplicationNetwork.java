@@ -291,13 +291,14 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void addHistory(Subject subject, String uri, String name, String category, NetworkHandler<Boolean> handler) {
+    public static void addHistory(Subject subject, String uri, String name, String category, @Nullable Boolean hasProblem, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
         params.put("id", id);
         params.put("course", subject.toString());
         params.put("uri", uri);
         params.put("label", name);
         params.put("category", category);
+        if (hasProblem != null) params.put("hasProblem", hasProblem ? "1" : "0");
         BaseNetwork.fetch(DATABASE_URL + "/api/addHistory", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {
             @Override
             public void onJsonSuccess(JSONObject o) {
