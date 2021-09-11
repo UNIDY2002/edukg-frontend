@@ -2,6 +2,7 @@ package com.java.sunxun;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.widget.ImageView;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onResult(List<LocalMedia> result) {
                                         try {
-                                            String path = result.get(0).getAndroidQToPath();
+                                            String path = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? result.get(0).getAndroidQToPath() : result.get(0).getPath();
                                             String imageBase64;
                                             InputStream inputStream = null;
                                             try {
