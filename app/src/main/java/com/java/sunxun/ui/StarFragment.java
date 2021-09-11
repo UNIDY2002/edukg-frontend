@@ -82,7 +82,7 @@ public class StarFragment extends Fragment {
                     ApplicationNetwork.star(data.subject, data.uri, data.name, data.category, folderStar, folderUnstar, new NetworkHandler<Boolean>(view) {
                         @Override
                         public void onSuccess(Boolean result) {
-                            data.isStar = true;
+                            data.isStar = !data.isStar;
                             notifyItemChanged(position);
                         }
 
