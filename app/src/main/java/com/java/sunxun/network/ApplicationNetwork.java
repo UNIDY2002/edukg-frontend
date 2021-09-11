@@ -72,10 +72,9 @@ public class ApplicationNetwork {
         });
     }
 
-    public static void modifyPassword(String username, String prev, String next, NetworkHandler<Boolean> handler) {
+    public static void modifyPassword(String prev, String next, NetworkHandler<Boolean> handler) {
         JSONObject params = new JSONObject();
         params.put("id", id);
-        params.put("username", username);
         params.put("oldPassword", prev);
         params.put("newPassword", next);
         BaseNetwork.fetch(BACKEND_URL + "/api/modifyPassword", params, BaseNetwork.Method.POST, new JsonResponseNetworkHandler(handler.activity, "0") {

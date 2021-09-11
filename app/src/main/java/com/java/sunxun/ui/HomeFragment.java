@@ -101,6 +101,14 @@ public class HomeFragment extends Fragment {
             randomSeed = new Random().nextInt();
         } else ++requestCnt;
 
+        try {
+            if (Subject.math.equals(selectedSubject)) {
+                Snackbar.make(binding.subjectTab, "很抱歉，数学学科暂不可用。", Snackbar.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         ApplicationNetwork.getEntityList(selectedSubject, requestCnt, entityNumEveryRequest, randomSeed, new NetworkHandler<String>(this) {
             @Override
             public void onSuccess(String result) {

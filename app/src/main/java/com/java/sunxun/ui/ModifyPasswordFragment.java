@@ -16,7 +16,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.java.sunxun.R;
 import com.java.sunxun.databinding.FragmentModifyPasswordBinding;
 import com.java.sunxun.exceptions.InvalidCodeException;
-import com.java.sunxun.models.User;
 import com.java.sunxun.network.ApplicationNetwork;
 import com.java.sunxun.network.NetworkHandler;
 
@@ -62,7 +61,7 @@ public class ModifyPasswordFragment extends Fragment {
             Editable next = binding.modifyNextInput.getText();
             if (prev != null && next != null) {
                 Snackbar.make(view, R.string.please_wait, Snackbar.LENGTH_SHORT).show();
-                ApplicationNetwork.modifyPassword(User.currentUser.getUsername(), prev.toString(), next.toString(), new NetworkHandler<Boolean>(this) {
+                ApplicationNetwork.modifyPassword(prev.toString(), next.toString(), new NetworkHandler<Boolean>(this) {
                     @Override
                     public void onSuccess(Boolean result) {
                         Snackbar.make(view, R.string.modify_succeed, Snackbar.LENGTH_SHORT).show();
