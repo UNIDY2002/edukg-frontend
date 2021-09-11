@@ -36,6 +36,7 @@ import com.java.sunxun.utils.Share;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -315,6 +316,28 @@ public class DetailFragment extends Fragment {
                         caption.setText("*暂无相关试题。");
                         binding.problemList.addView(caption);
                         return;
+                    }
+
+                    try {
+                        PlatformNetwork.searchInstance(subject, name, new NetworkHandler<ArrayList<SearchResult>>(DetailFragment.this) {
+                            @Override
+                            public void onSuccess(ArrayList<SearchResult> result) {
+                                Bundle bundle = new Bundle();
+                                bundle.putString("name", name);
+                                Optional<SearchResult> target = result.stream().filter(searchResult -> searchResult.getLabel().equals(name)).findFirst();
+                                if (!target.isPresent()) throw new NullPointerException();
+                                bundle.putString("uri", target.get().getUri());
+                                binding.detailMoreProblems.setVisibility(View.VISIBLE);
+                                binding.detailMoreProblems.setOnClickListener(v -> NavHostFragment.findNavController(DetailFragment.this).navigate(R.id.nav_user_test_problems, bundle));
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
                     // 随机渲染一个试题
